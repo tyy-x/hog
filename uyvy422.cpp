@@ -13,7 +13,7 @@
 using namespace std;
 using namespace img;
 
-void readInterlacedYUV422_(const string &filename, Image &img, int flags)
+void readUYVY422_(const string &filename, Image &img, int flags)
 {
     ifstream ifile(filename, ifstream::binary);
     
@@ -35,9 +35,9 @@ void readInterlacedYUV422_(const string &filename, Image &img, int flags)
     ifile.close();
 }
 
-void readInterlacedYUV422(const string &filename, Image &img, int flags)
+void readUYVY422(const string &filename, Image &img, int flags)
 {
-    readInterlacedYUV422_(filename, img, flags);
+    readUYVY422_(filename, img, flags);
     
     int round=img.rows*img.cols*2/8;
     if(flags==READ_GRAYSCALE){
@@ -49,7 +49,7 @@ void readInterlacedYUV422(const string &filename, Image &img, int flags)
     }
 }
 
-void writeInterlacedYUV422(const string &filename, const Image &img)
+void writeUYVY422(const string &filename, const Image &img)
 {
     ofstream ofile(filename, ofstream::binary);
     char buffer[8];

@@ -13,13 +13,14 @@
 
 namespace img {
     typedef unsigned char uchar;
-    enum {GRAYSCALE=1, COLOR=3};
-    enum {READ_GRAYSCALE=1, READ_COLOR=3};
+    enum {READ_GRAYSCALE, READ_COLOR};
+    enum {IMG_UC1=1, IMG_UC2=2, IMG_UC3=3};
     /* image class for 8-bit images*/
     class Image{
     private:
         int counter=0; //when counter reacher 0, release the memory for data matrix
-        int channels=GRAYSCALE; //channels of image
+        //int channels=GRAYSCALE; //channels of image
+        int depth=IMG_UC1;
         uchar *begin=nullptr; //pointer pointed to the start of the data matrix
         uchar *end=nullptr; //pointer pointed to the location just immediately pass the last element of the data matrix
         
@@ -31,8 +32,12 @@ namespace img {
         uchar *data=nullptr; //image data matrix
         //constructor
         Image() { /*debug */ std::cout<<"default constructor"<<std::endl; std::cout<<"counter: "<<counter<<std::endl;}
-        Image(int _rows, int _cols, int _channels);
+        Image(int _rows, int _cols, int _depth);
+        
+        //overload contructor, default generate a one-channel image data matrix
         Image(int _rows, int _cols);
+        
+        //copy constructor
         Image(const Image &img);
         
         //destructor
@@ -41,36 +46,36 @@ namespace img {
         Image& operator=(const Image &img);
         
         //return pointer which points to the first element of every row of the data matrix
-        uchar* rowPointer(int _rows) { return data+_rows*cols*channels;}
+        uchar* rowPointer(int _rows) { return data+_rows*cols*depth;}
         
-        //calculate the position of the pixel of one channel image and return its value by reference
-        uchar& at(int _rows, int _cols) { return data[_rows*cols+_cols];}
-        //overload at function to allow const object to call it
-        const uchar at(int _rows, int _cols) const { return data[_rows*cols+_cols];}
-        
-        //return pointer of every element of a 3 channel image
-        uchar* at3channel(int _rows, int _cols) { return data+_rows*cols*3+_cols*3;}
-        //overload at3channel function to aloow const object to call it
-        const uchar* at3channel(int _rows, int _cols) const { return data+_rows*cols*3+_cols*3;}
+        /*
+        calculate element position and return its pointer
+        example: *at(1, 2) for one channel image
+                 at(1, 2)[0] at(1, 2)[1] for two-channel image
+        */
+        uchar* at(int _rows, int _cols) { return data+_rows*cols*depth+_cols*depth;}
+        const uchar* at(int _rows, int _cols) const { return data+_rows*cols*depth+_cols*depth;}
         
         //copy an existence Image object with the same channel number
         void copy(const Image &img);
     };
     
-    inline Image::Image(int _rows, int _cols, int _channels):rows(_rows), cols(_cols), channels(_channels)
+    inline Image::Image(int _rows, int _cols, int _depth):rows(_rows), cols(_cols), depth(_depth)
     {
         std::cout<<"constructor1"<<std::endl;
-        allocate(_rows, _cols, _channels);
+        allocate(_rows, _cols, _depth);
         begin=data;
-        end=data+rows*cols*channels;
+        end=data+rows*cols*depth;
         std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::Image(int _rows, int _cols):rows(_rows), cols(_cols)
     {
-        allocate(_rows, _cols, GRAYSCALE);
+        allocate(_rows, _cols, IMG_UC1);
         begin=data;
-        end=data+rows*cols*channels;
+        end=data+rows*cols*depth;
+        std::cout<<"constructor2"<<std::endl;
+        std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::Image(const Image &img)
@@ -78,7 +83,7 @@ namespace img {
         std::cout<<"copy constructor"<<std::endl;
         rows=img.rows;
         cols=img.cols;
-        channels=img.channels;
+        depth=img.depth;
         counter=(img.counter==0) ? img.counter : img.counter+1;
         data=img.data;
         begin=img.begin;
@@ -91,7 +96,7 @@ namespace img {
         counter--;
         std::cout<<"~Image() counter: "<<counter<<std::endl;
         if(!counter){
-            std::cout<<"free"<<std::endl;
+            std::cout<<"release"<<std::endl;
             delete[] data;
             data=nullptr;
             begin=nullptr;
@@ -99,10 +104,10 @@ namespace img {
         }
     }
     
-    inline void Image::allocate(int _rows, int _cols, int _channels)
+    inline void Image::allocate(int _rows, int _cols, int _depth)
     {
         //std::cout<<"allocate"<<std::endl;
-        data=new uchar[_channels*_rows*_cols]();
+        data=new uchar[_depth*_rows*_cols]();
         counter++;
     }
     
@@ -119,7 +124,7 @@ namespace img {
         }
         rows=img.rows;
         cols=img.cols;
-        channels=img.channels;
+        depth=img.depth;
         counter=(img.counter==0) ? img.counter : img.counter+1;
         data=img.data;
         begin=img.begin;
@@ -131,15 +136,12 @@ namespace img {
     
     inline void Image::copy(const Image &img)
     {
-        if(channels!=img.channels){
-            std::cerr<<"the image channel is not the same"<<std::endl;
+        if(depth!=img.depth | rows!=img.rows | cols!=img.cols){
+            std::cerr<<"copy failed"<<std::endl;
             exit(1);
         }
-        if(rows!=img.rows || cols!=img.cols){
-            std::cerr<<"not the same size image"<<std::endl;
-            exit(1);
-        }
-        for(int i=0; i<rows*cols*channels; i++) data[i]=img.data[i];
+        int size=rows*cols*depth;
+        for(int i=0; i<size; i++) data[i]=img.data[i];
     }
 }
 
