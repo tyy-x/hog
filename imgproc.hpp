@@ -16,5 +16,8 @@
 
 //contrast stretch
 void stretch(img::Image &img, int min, int max);
-
+//make image border for filtering
+void makeBorderConstant(img::Image &dst, const img::Image &src, int borderWidth, const int value);
+void makeBorderCopy(img::Image &dst, const img::Image &src, int borderWidth);
+void gaussian(img::Image &padImg, img::Image &img);
 #endif /* IMGPROC_HPP */

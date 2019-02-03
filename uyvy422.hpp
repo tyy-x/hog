@@ -15,6 +15,13 @@ void readUYVY422(const std::string &filename, img::Image &img, int flags=img::RE
 void readUYVY422_(const std::string &filename, img::Image &img, int flags);
 void writeUYVY422(const std::string &filename, const img::Image &img);
 void writeYUV444(const std::string &filename, const img::Image &img);
+//for a yvy422 image, set the value of U and V channel to 128 to generate a grayscale image
+inline void setGrayscale(img::Image &img)
+{
+    int size=img.rows*img.cols;
+    for(int i=0; i<size; i++) img.data[i*2]=128;
+}
+
 //data layout becomes y0u0v0y1u1v1... after convert
 void convertToYUV444(img::Image &dst, const img::Image &src);
 

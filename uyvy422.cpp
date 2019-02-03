@@ -38,15 +38,7 @@ void readUYVY422_(const string &filename, Image &img, int flags)
 void readUYVY422(const string &filename, Image &img, int flags)
 {
     readUYVY422_(filename, img, flags);
-    
-    int round=img.rows*img.cols*2/8;
-    if(flags==READ_GRAYSCALE){
-        for(int i=0; i<round; i++){
-            for(int j=0; j<4; j++){
-                img.data[i*8+j*2]=128;
-            }
-        }
-    }
+    if(flags==READ_GRAYSCALE) setGrayscale(img);
 }
 
 void writeUYVY422(const string &filename, const Image &img)
