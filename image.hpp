@@ -15,12 +15,11 @@ namespace img {
     typedef unsigned char uchar;
     enum {READ_GRAYSCALE, READ_COLOR};
     enum {IMG_UC1=1, IMG_UC2=2, IMG_UC3=3};
-    enum {CONSTANT_BORDER, COPYBORDER};
     /* image class for 8-bit images*/
     class Image{
     private:
         int counter=0; //when counter reacher 0, release the memory for data matrix
-        void allocate(int _rows, int _cols, int _channels); //allocate memory
+        void allocate(int _rows, int _cols, int _depth); //allocate memory
         
     public:
         int rows=0; //rows of image

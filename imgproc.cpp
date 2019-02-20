@@ -92,17 +92,18 @@ void makeBorderCopy(Image &dst, const Image &src, int borderWidth)
 void gaussian(Image &padImg, Image &img)
 {
     vector<int> filter{1, 2, 1, 2, 4, 2, 1, 2, 1};
+    vector<int> filter2{1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
     
-    for(int i=1; i<padImg.rows-1; i++){
-        for(int j=1; j<padImg.cols-1; j++){
+    for(int i=2; i<padImg.rows-2; i++){
+        for(int j=2; j<padImg.cols-2; j++){
             int sum=0;
             int count=0;
-            for(int k=-1; k<=1; k++){
-                for(int l=-1; l<=1; l++){
-                    sum+=filter[count++]*(*padImg.at(i+k, j+l));
+            for(int k=-2; k<=2; k++){
+                for(int l=-2; l<=2; l++){
+                    sum+=filter2[count++]*(*padImg.at(i+k, j+l));
                 }
             }
-            *img.at(i-1, j-1)=sum/16;
+            *img.at(i-2, j-2)=sum/273;
         }
     }
     
