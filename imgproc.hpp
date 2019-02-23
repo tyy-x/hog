@@ -11,13 +11,34 @@
 
 #include "image.hpp"
 
-//seperate 3-channel image to 1-channel
-//void split(const img::Image &img, img::Image &channe0, img::Image &channel1, img::Image &channel2);
-
-//contrast stretch
-void stretch(img::Image &img, int min, int max);
-//make image border for filtering
-void makeBorderConstant(img::Image &dst, const img::Image &src, int borderWidth, const int value);
-void makeBorderCopy(img::Image &dst, const img::Image &src, int borderWidth);
-void gaussian(img::Image &padImg, img::Image &img);
+namespace img {
+    //contrast stretch
+    void stretch(Image &img, int min, int max);
+    
+    /* make image border using constant value
+     @param dst for new one channel image data matrix
+     @param src for old one channel image data matrix
+     @param borderWidth for pixel numbers of the border
+     @param value for constant value used to fill the border
+    */
+    void makeBorderConstant(Image &dst, const Image &src, int borderWidth, const int value);
+    
+    /* make image border using copy method, copy the first and the last column to fill the
+     * left and the right border, copy the first and the last row to fill the top and the
+     * bottom border, and set the corner to 0
+     @param dst for new one channel image data matrix
+     @param src for old one channel image data matrix
+     @param borderWidth for pixel numbers of the border
+    */
+    void makeBorderCopy(Image &dst, const Image &src, int borderWidth);
+    
+    /* image scaling using bilinear interpolation
+     @param dst: new one channel image
+     @param src: old one channel image
+     @param factor: scale factor
+    */
+    void scale(Image &dst, const Image &src, float factor);
+    void gaussian(Image &padImg, Image &img);
+    void gammaCorrection(Image &img, float gamma);
+}
 #endif /* IMGPROC_HPP */

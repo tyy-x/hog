@@ -24,11 +24,11 @@ namespace img {
     public:
         int rows=0; //rows of image
         int cols=0; //columns of image
-        int depth=IMG_UC1; //depth of value
+        int depth=IMG_UC1; //depth of pixel value
         uchar *data=nullptr; //image data matrix
         
         //constructor
-        Image() { /*debug */ /*std::cout<<"default constructor"<<std::endl; std::cout<<"counter: "<<counter<<std::endl;*/}
+        Image() { /*debug */ std::cout<<"default constructor"<<std::endl; std::cout<<"counter: "<<counter<<std::endl;}
         Image(int _rows, int _cols, int _depth);
         
         //overload contructor, default generate a one-channel image data matrix
@@ -62,16 +62,16 @@ namespace img {
     
     inline Image::Image(int _rows, int _cols, int _depth):rows(_rows), cols(_cols), depth(_depth)
     {
-        //std::cout<<"constructor1"<<std::endl;
+        std::cout<<"constructor1"<<std::endl;
         allocate(_rows, _cols, _depth);
-        //std::cout<<"counter: "<<counter<<std::endl;
+        std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::Image(int _rows, int _cols):rows(_rows), cols(_cols)
     {
         allocate(_rows, _cols, IMG_UC1);
-        //std::cout<<"constructor2"<<std::endl;
-        //std::cout<<"counter: "<<counter<<std::endl;
+        std::cout<<"constructor2"<<std::endl;
+        std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::Image(const Image &img)
@@ -88,9 +88,9 @@ namespace img {
     inline Image::~Image()
     {
         counter--;
-        //std::cout<<"~Image() counter: "<<counter<<std::endl;
+        std::cout<<"~Image() counter: "<<counter<<std::endl;
         if(!counter){
-            //std::cout<<"release"<<std::endl;
+            std::cout<<"release"<<std::endl;
             delete[] data;
             data=nullptr;
         }
