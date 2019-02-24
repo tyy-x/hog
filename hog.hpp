@@ -40,7 +40,7 @@ namespace hog {
         void initial();
         void computeGradient(const img::Image &img);
         void assignGradientMagnitude(img::Image &img);
-        void computeCellHistogram(int xWin, int yWin);
+        void computeCellHistogram(int yWin, int xWin);
         void normalizeBlockHistogram();
     public:
         HOGFeature() { initial();}

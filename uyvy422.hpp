@@ -19,8 +19,8 @@ namespace img {
     //for a yvy422 image, set the value of U and V channel to 128 to generate a grayscale image
     inline void setGrayscale(Image &img)
     {
-        int size=img.rows*img.cols;
-        for(int i=0; i<size; i++) img.data[i*2]=128;
+        int _size=img.rows*img.cols;
+        for(int i=0; i<_size; i++) img.data[i*2]=128;
     }
     
     //data layout becomes y0u0v0y1u1v1... after convert
@@ -32,15 +32,15 @@ namespace img {
     */
     inline void extractLuma(Image &dst, const Image &src)
     {
-        int size=src.rows*src.cols;
-        for(int i=0; i<size; i++) dst.data[i]=src.data[i*2+1];
+        int _size=src.rows*src.cols;
+        for(int i=0; i<_size; i++) dst.data[i]=src.data[i*2+1];
     }
     
     //merge luminance channel
     inline void merge(const Image &luma, Image &img)
     {
-        int size=img.rows*img.cols;
-        for(int i=0; i<size; i++) img.data[i*2+1]=luma.data[i];
+        int _size=img.rows*img.cols;
+        for(int i=0; i<_size; i++) img.data[i*2+1]=luma.data[i];
     }
 }
 #endif /* UYVY422_HPP */

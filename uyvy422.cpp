@@ -86,19 +86,19 @@ namespace img {
     
     void convertToYUV444(Image &dst, const Image &src)
     {
-        int size=dst.rows*dst.cols;
-        vector<uchar> luma(size);
-        vector<uchar> chromU(size);
-        vector<uchar> chromV(size);
+        int _size=dst.rows*dst.cols;
+        vector<uchar> luma(_size);
+        vector<uchar> chromU(_size);
+        vector<uchar> chromV(_size);
         
-        for(int i=0; i<size; i++) luma[i]=src.data[i*2+1];
-        for(int i=0; i<size/2; i++){
+        for(int i=0; i<_size; i++) luma[i]=src.data[i*2+1];
+        for(int i=0; i<_size/2; i++){
             chromU[i]=src.data[i*4];
             chromV[i]=src.data[i*4+2];
         }
         
-        for(int i=0; i<size; i++) dst.data[i*3]=luma[i];
-        for(int i=0; i<size/2; i++){
+        for(int i=0; i<_size; i++) dst.data[i*3]=luma[i];
+        for(int i=0; i<_size/2; i++){
             dst.data[i*6+1]=chromU[i];
             dst.data[i*6+4]=chromU[i];
             dst.data[i*6+2]=chromV[i];
