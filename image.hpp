@@ -40,7 +40,7 @@ namespace img {
         Image(const Image &img);
         
         //destructor
-        ~Image() {}
+        //~Image() {}
         //overload assignment operator
         Image& operator=(const Image &img);
         
