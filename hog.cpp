@@ -174,7 +174,7 @@ void HOGFeature::computeHOGFeature(int yWin, int xWin)
     int count=0;
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
-            for(int k=0; k<hogVectorSize; k++){
+            for(int k=0; k<blockHistSize; k++){
                 hogVector[count++]=blockHist[i][j][k];
             }
         }
