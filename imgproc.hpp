@@ -13,7 +13,7 @@
 
 namespace img {
     //contrast stretch
-    void stretch(Image &img, int min, int max);
+    void stretch(Mat<uchar> &img, int min, int max);
     
     /* make image border using constant value
      @param dst for new one channel image data matrix
@@ -21,7 +21,7 @@ namespace img {
      @param borderWidth for pixel numbers of the border
      @param value for constant value used to fill the border
     */
-    void makeBorderConstant(Image &dst, const Image &src, int borderWidth, const int value);
+    void makeBorderConstant(Mat<uchar> &dst, const Mat<uchar> &src, int borderWidth, const int value);
     
     /* make image border using copy method, copy the first and the last column to fill the
      * left and the right border, copy the first and the last row to fill the top and the
@@ -30,15 +30,15 @@ namespace img {
      @param src for old one channel image data matrix
      @param borderWidth for pixel numbers of the border
     */
-    void makeBorderCopy(Image &dst, const Image &src, int borderWidth);
+    void makeBorderCopy(Mat<uchar> &dst, const Mat<uchar> &src, int borderWidth);
     
     /* image scaling using bilinear interpolation
      @param dst: new one channel image
      @param src: old one channel image
      @param factor: scale factor
     */
-    void scale(Image &dst, const Image &src, float factor);
-    void gaussian(Image &padImg, Image &img);
-    void gammaCorrection(Image &img, float gamma);
+    void scale(Mat<uchar> &dst, const Mat<uchar> &src, float factor);
+    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img);
+    void gammaCorrection(Mat<uchar> &img, float gamma);
 }
 #endif /* IMGPROC_HPP */

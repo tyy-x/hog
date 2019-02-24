@@ -13,7 +13,7 @@
 using namespace std;
 
 namespace img {
-    void readUYVY422_(const string &filename, Image &img, int flags)
+    void readUYVY422_(const string &filename, Mat<uchar> &img, int flags)
     {
         ifstream ifile(filename, ifstream::binary);
         
@@ -35,13 +35,13 @@ namespace img {
         ifile.close();
     }
     
-    void readUYVY422(const string &filename, Image &img, int flags)
+    void readUYVY422(const string &filename, Mat<uchar> &img, int flags)
     {
         readUYVY422_(filename, img, flags);
         if(flags==READ_GRAYSCALE) setGrayscale(img);
     }
     
-    void writeUYVY422(const string &filename, const Image &img)
+    void writeUYVY422(const string &filename, const Mat<uchar> &img)
     {
         ofstream ofile(filename, ofstream::binary);
         char buffer[8];
@@ -62,7 +62,7 @@ namespace img {
         ofile.close();
     }
     
-    void writeYUV444(const string &filename, const Image &img)
+    void writeYUV444(const string &filename, const Mat<uchar> &img)
     {
         ofstream ofile(filename, ofstream::binary);
         char buffer[6];
@@ -84,7 +84,7 @@ namespace img {
         ofile.close();
     }
     
-    void convertToYUV444(Image &dst, const Image &src)
+    void convertToYUV444(Mat<uchar> &dst, const Mat<uchar> &src)
     {
         int _size=dst.rows*dst.cols;
         vector<uchar> luma(_size);

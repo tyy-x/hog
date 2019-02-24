@@ -38,25 +38,25 @@ namespace hog {
         std::vector<double> hogVector;
         
         void initial();
-        void computeGradient(const img::Image &img);
-        void assignGradientMagnitude(img::Image &img);
+        void computeGradient(const img::Mat<img::uchar> &img);
+        void assignGradientMagnitude(img::Mat<img::uchar> &img);
         void computeCellHistogram(int yWin, int xWin);
         void normalizeBlockHistogram();
     public:
         HOGFeature() { initial();}
         ~HOGFeature() { std::cout<<"debug"<<std::endl;}
-        void processing(img::Image &img, int type);
+        void processing(img::Mat<img::uchar> &img, int type);
         void computeHOGFeature(int xWin, int yWin);
         void save(const std::string &filename);
     };
     
-    inline void HOGFeature::processing(img::Image &img, int type)
+    inline void HOGFeature::processing(img::Mat<img::uchar> &img, int type)
     {
         computeGradient(img);
         if(type) assignGradientMagnitude(img);
     }
     
-    inline void HOGFeature::assignGradientMagnitude(img::Image &img)
+    inline void HOGFeature::assignGradientMagnitude(img::Mat<img::uchar> &img)
     {
         for(int i=0; i<img.rows; i++){
             for(int j=0; j<img.cols; j++){

@@ -46,7 +46,7 @@ void HOGFeature::initial()
     hogVector.resize(hogVectorSize, 0);
 }
 
-void HOGFeature::computeGradient(const Image &img)
+void HOGFeature::computeGradient(const Mat<uchar> &img)
 {
     magnitude.resize(img.rows);
     for(int i=0; i<img.rows; i++){
@@ -57,7 +57,7 @@ void HOGFeature::computeGradient(const Image &img)
         angle[i].resize(img.cols);
     }
     
-    Image padImg(img.rows+2, img.cols+2, IMG_UC1);
+    Mat<uchar> padImg(img.rows+2, img.cols+2, IMG_UC1);
     
     makeBorderCopy(padImg, img, 1);
     

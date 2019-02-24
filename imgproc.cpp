@@ -28,7 +28,7 @@ namespace img {
      */
     
     //contrast stretch
-    void stretch(Image &img, int min, int max)
+    void stretch(Mat<uchar> &img, int min, int max)
     {
         unsigned char low, high;
         int size=img.rows*img.cols;
@@ -44,7 +44,7 @@ namespace img {
         for(int i=0; i<size; i++) img.data[i]=LUT[img.data[i]];
     }
     
-    void makeBorderConstant(Image &dst, const Image &src, int borderWidth, const int value)
+    void makeBorderConstant(Mat<uchar> &dst, const Mat<uchar> &src, int borderWidth, const int value)
     {
         //dst.create(src.rows+borderWidth, src.cols+borderWidth, src.depth);
         int size=dst.rows*dst.cols;
@@ -57,7 +57,7 @@ namespace img {
         }
     }
     
-    void makeBorderCopy(Image &dst, const Image &src, int borderWidth)
+    void makeBorderCopy(Mat<uchar> &dst, const Mat<uchar> &src, int borderWidth)
     {
         //copy the top and bottom
         for(int i=0; i<borderWidth; i++){
@@ -90,7 +90,7 @@ namespace img {
         }
     }
     
-    void scale(Image &dst, const Image &src, float factor)
+    void scale(Mat<uchar> &dst, const Mat<uchar> &src, float factor)
     {
         float deltaX, deltaY;
         float srcX, srcY;
@@ -120,7 +120,7 @@ namespace img {
         }
     }
     
-    void gaussian(Image &padImg, Image &img)
+    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img)
     {
         vector<int> filter{1, 2, 1, 2, 4, 2, 1, 2, 1};
         vector<int> filter2{1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
@@ -140,7 +140,7 @@ namespace img {
         
     }
     
-    void gammaCorrection(Image &img, float gamma)
+    void gammaCorrection(Mat<uchar> &img, float gamma)
     {
         vector<unsigned char> LUT(256);
         
