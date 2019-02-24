@@ -31,25 +31,21 @@ namespace img {
     void stretch(Image &img, int min, int max)
     {
         unsigned char low, high;
-        int size=img.rows*img.cols;
         int LUT[256]={0};
         
         high=low=img.data[0];
-        for(int i=0; i<size; i++){
+        for(int i=0; i<img.size; i++){
             if(high<img.data[i]) high=img.data[i];
             if(low>img.data[i]) low=img.data[i];
         }
         
         for(int i=0; i<256; i++) LUT[i]=min+(max-min)*(i-low)/(high-low);
-        for(int i=0; i<size; i++) img.data[i]=LUT[img.data[i]];
+        for(int i=0; i<img.size; i++) img.data[i]=LUT[img.data[i]];
     }
     
     void makeBorderConstant(Image &dst, const Image &src, int borderWidth, const int value)
     {
-        //dst.create(src.rows+borderWidth, src.cols+borderWidth, src.depth);
-        int size=dst.rows*dst.cols;
-        
-        for(int i=0; i<size; i++) dst.data[i]=value;
+        for(int i=0; i<dst.size; i++) dst.data[i]=value;
         for(int i=0; i<src.rows; i++){
             for(int j=0; j<src.cols; j++){
                 *dst.at(i+borderWidth, j+borderWidth)=*src.at(i, j);
