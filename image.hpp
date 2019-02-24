@@ -19,12 +19,13 @@ namespace img {
     class Image{
     private:
         int counter=0; //when counter reacher 0, release the memory for data matrix
+        int size=0; //data size
+        int depth=IMG_UC1; //depth of pixel value
         void allocate(int _rows, int _cols, int _depth); //allocate memory
         
     public:
         int rows=0; //rows of image
         int cols=0; //columns of image
-        int depth=IMG_UC1; //depth of pixel value
         uchar *data=nullptr; //image data matrix
         
         //constructor
@@ -46,15 +47,15 @@ namespace img {
         void create(int _rows, int _cols, int _depth);
         
         //return pointer which points to the first element of every row of the data matrix
-        uchar* rowPointer(int _rows) { return data+_rows*cols*depth;}
+        uchar* rowPtr(int _rows);
         
         /*
         calculate element position and return its pointer
         example: *at(1, 2) for one channel image
                  at(1, 2)[0] at(1, 2)[1] for two-channel image
         */
-        uchar* at(int _rows, int _cols) { return data+_rows*cols*depth+_cols*depth;}
-        const uchar* at(int _rows, int _cols) const { return data+_rows*cols*depth+_cols*depth;}
+        uchar* at(int _rows, int _cols);
+        const uchar* at(int _rows, int _cols) const;
         
         //copy an existence Image object with the same channel number
         void copy(const Image &img);
@@ -64,25 +65,28 @@ namespace img {
     {
         std::cout<<"constructor1"<<std::endl;
         allocate(_rows, _cols, _depth);
+        size=rows*cols*depth;
         std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::Image(int _rows, int _cols):rows(_rows), cols(_cols)
     {
         allocate(_rows, _cols, IMG_UC1);
+        size=_rows*_cols*depth;
         std::cout<<"constructor2"<<std::endl;
         std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::Image(const Image &img)
     {
-        //std::cout<<"copy constructor"<<std::endl;
+        std::cout<<"copy constructor"<<std::endl;
+        size=img.size;
         rows=img.rows;
         cols=img.cols;
         depth=img.depth;
         counter=(img.counter==0) ? img.counter : img.counter+1;
         data=img.data;
-        //std::cout<<"counter: "<<counter<<std::endl;
+        std::cout<<"counter: "<<counter<<std::endl;
     }
     
     inline Image::~Image()
@@ -98,26 +102,27 @@ namespace img {
     
     inline void Image::allocate(int _rows, int _cols, int _depth)
     {
-        //std::cout<<"allocate"<<std::endl;
+        std::cout<<"allocate"<<std::endl;
         data=new uchar[_depth*_rows*_cols]();
         counter++;
     }
     
     inline Image& Image::operator=(const Image &img)
     {
-        //std::cout<<"operator="<<std::endl;
+        std::cout<<"operator="<<std::endl;
         if(counter==1){
             delete[] data;
             data=nullptr;
             counter--;
-            //std::cout<<"counter: "<<counter<<" free"<<std::endl;
+            std::cout<<"counter: "<<counter<<" free"<<std::endl;
         }
+        size=img.size;
         rows=img.rows;
         cols=img.cols;
         depth=img.depth;
         counter=(img.counter==0) ? img.counter : img.counter+1;
         data=img.data;
-        //std::cout<<"counter: "<<counter<<std::endl;
+        std::cout<<"counter: "<<counter<<std::endl;
         
         return *this;
     }
@@ -125,19 +130,47 @@ namespace img {
     inline void Image::create(int _rows, int _cols, int _depth)
     {
         allocate(_rows, _cols, _depth);
+        size=_rows*_cols*_depth;
         rows=_rows;
         cols=_cols;
         depth=_depth;
     }
 
+    inline uchar* Image::rowPtr(int _rows)
+    {
+        if(_rows*cols*depth>=size){
+            std::cerr<<"#ERROR: BAD ACCESS"<<std::endl;
+            exit(1);
+        }
+        return data+_rows*cols*depth;
+    }
+    
+    inline uchar* Image::at(int _rows, int _cols)
+    {
+        if((_rows*cols*depth+_cols*depth)>=size){
+            std::cerr<<"#ERROR: BAD ACCESS"<<std::endl;
+            exit(1);
+        }
+        return data+_rows*cols*depth+_cols*depth;
+    }
+    
+    inline const uchar* Image::at(int _rows, int _cols) const
+    {
+        if((_rows*cols*depth+_cols*depth)>=size){
+            std::cerr<<"#ERROR: BAD ACCESS"<<std::endl;
+            exit(1);
+        }
+        return data+_rows*cols*depth+_cols*depth;
+    }
+    
     inline void Image::copy(const Image &img)
     {
         if(depth!=img.depth | rows!=img.rows | cols!=img.cols){
             std::cerr<<"copy failed"<<std::endl;
             exit(1);
         }
-        int size=rows*cols*depth;
-        for(int i=0; i<size; i++) data[i]=img.data[i];
+        int _size=rows*cols*depth;
+        for(int i=0; i<_size; i++) data[i]=img.data[i];
     }
 }
 
