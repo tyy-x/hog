@@ -48,11 +48,12 @@ namespace img {
         
         //return pointer which points to the first element of every row of the data matrix
         uchar* rowPtr(int _rows);
+        const uchar* rowPtr(int _rows) const;
         
         /*
-        calculate element position and return its pointer
-        example: *at(1, 2) for one channel image
-                 at(1, 2)[0] at(1, 2)[1] for two-channel image
+         * calculate element position and return its pointer
+         * example: *at(1, 2) for one channel image
+         *          at(1, 2)[0] at(1, 2)[1] for two-channel image
         */
         uchar* at(int _rows, int _cols);
         const uchar* at(int _rows, int _cols) const;
@@ -137,6 +138,15 @@ namespace img {
     }
 
     inline uchar* Image::rowPtr(int _rows)
+    {
+        if(_rows*cols*depth>=size){
+            std::cerr<<"#ERROR: BAD ACCESS"<<std::endl;
+            exit(1);
+        }
+        return data+_rows*cols*depth;
+    }
+    
+    inline const uchar* Image::rowPtr(int _rows) const
     {
         if(_rows*cols*depth>=size){
             std::cerr<<"#ERROR: BAD ACCESS"<<std::endl;
