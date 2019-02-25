@@ -14,42 +14,39 @@
 
 namespace hog {
     const double PI=3.14159265;
-    
+    //Implementation of HOG Algorithm
     class HOGFeature{
     private:
-        //typedef std::vector<std::vector<std::vector<double>>> Hist;
-        static int LUT[9];
-        int bins=9;
-        int cellSize=8;
-        int blockSize=16;
-        int winWidth=64;
-        int winHeight=128;
-        int cellHistRows;
-        int cellHistCols;
-        int blockHistRows;
-        int blockHistCols;
-        int blockHistSize;
-        int blockStride=8;
-        int hogVectorSize;
-        img::Mat<double> magnitude;
-        img::Mat<double> angle;
-        img::Mat<double> cellHist;
-        img::Mat<double> blockHist;
-        //Hist cellHist;
-        //Hist blockHist;
-        std::vector<double> hogVector;
+        int bins=9; //number of cell histogram bins
+        int cellSize=8; //pixel number of one cell
+        int blockSize=16; //pixel number of one block
+        int winWidth=64; //width of scanning window
+        int winHeight=128; //height of scanning window
+        int cellHistRows; //number of cell histogram along x direction in one window
+        int cellHistCols; //number of cell histogram along y direction in one window
+        int blockHistRows; //number of block histogram along x direction in one window
+        int blockHistCols; //number of block histogram along y direction in one window
+        int blockHistSize; //number of bins of one block histogram
+        int hogVectorSize; //dimension of hog descriptor
+        img::Mat<double> magnitude; //data matrix of gradient magnitude
+        img::Mat<double> angle; //data matrix of gradient orientation
+        img::Mat<double> cellHist; //data matrix of cell histogram
+        img::Mat<double> blockHist; //data matrix of block histogram
+        std::vector<double> hogVector; //final hog descriptor in one window
         
         void initial();
         void computeGradient(const img::Mat<img::uchar> &img);
         void assignGradientMagnitude(img::Mat<img::uchar> &img);
-        void computeCellHistogram(int yWin, int xWin);
-        void normalizeBlockHistogram();
+        void computeCellHistogram(int yWin, int xWin); //compute cell histogram use trilinear interpolation
+        void computeBlockHistogram();
+        void computeL2norm(); //normalize block histogram usr L2-norm method
     public:
         HOGFeature() { initial();}
-        ~HOGFeature() { std::cout<<"debug"<<std::endl;}
-        void processing(img::Mat<img::uchar> &img, int type=0);
-        void computeHOGFeature(int xWin, int yWin);
-        void save(const std::string &filename);
+        HOGFeature(int _winHeight, int _winWidth):winHeight(_winHeight), winWidth(_winWidth) { initial();}
+        ~HOGFeature() { /*std::cout<<"debug"<<std::endl;*/}
+        void processing(img::Mat<img::uchar> &img, int type=0); //preprocessing image to compute gradient
+        void computeHOGFeature(int xWin, int yWin); //compute hog feature in the scanning window
+        void save(const std::string &filename); //save hog descriptor data to file
     };
     
     inline void HOGFeature::processing(img::Mat<img::uchar> &img, int flag)

@@ -16,15 +16,13 @@ using namespace hog;
 using namespace img;
 using namespace std;
 
-int HOGFeature::LUT[9]={0, 20, 40, 60, 80, 100, 120, 140, 160};
-
 void HOGFeature::initial()
 {
     cellHistRows=winHeight/cellSize;
     cellHistCols=winWidth/cellSize;
     blockHistRows=cellHistRows-blockSize/cellSize+1;
     blockHistCols=cellHistCols-blockSize/cellSize+1;
-    blockHistSize=9*blockSize/cellSize*blockSize/cellSize;
+    blockHistSize=bins*blockSize/cellSize*blockSize/cellSize;
     hogVectorSize=blockHistSize*blockHistRows*blockHistCols;
     
     cellHist.create(cellHistRows, cellHistCols, bins);
@@ -65,116 +63,160 @@ void HOGFeature::computeGradient(const Mat<uchar> &img)
     }
 }
 
-//calculate cell histogram and generate block histogoram
+//compute cell histogram use trilinear interpolation
 void HOGFeature::computeCellHistogram(int yWin, int xWin)
 {
+    int cellY=0, cellX=0; //cordinates of cell
+    int cellRightBorder, cellTopBorder; //right border and top border of every cell
+    int _bin; //bin center
+    double _angle;
+    double factorX, factorY, factorBin;
     int index;
-    int count1=0;
-    int count2=0;
-    int count3=0;
     
-    //calculate histogram of each cell
-    for(int i=yWin; i<=yWin+winHeight-cellSize; i+=cellSize){
-        for(int j=xWin; j<=xWin+winWidth-cellSize; j+=cellSize){
+    //trilinear interpolation of weights
+    for(int i=yWin; i<=yWin+winHeight-cellSize; i+=8){
+        for(int j=xWin; j<=xWin+winWidth-cellSize; j+=8){
+            cellTopBorder=cellY*cellSize+yWin;
+            cellRightBorder=cellX*cellSize+xWin;
             for(int y=0; y<cellSize; y++){
                 for(int x=0; x<cellSize; x++){
-                    index=*angle.at(i+y, j+x)/20.0;
+                    _angle=*angle.at(i+y, j+x);
+                    index=_angle/20;
+                    factorX=(j+x-cellRightBorder)/7;
+                    factorY=(i+y-cellTopBorder)/7;
                     if(index<8){
-                        cellHist.at(count1, count2)[index]+=(1-(*angle.at(i+y, j+x)-LUT[index])/20.0)*(*magnitude.at(i+y, j+x));
-                        cellHist.at(count1, count2)[index+1]+=(*angle.at(i+y, j+x)-LUT[index])/20.0*(*magnitude.at(i+y, j+x));
-                    }else if(index==8){
-                        cellHist.at(count1, count2)[8]+=(1-(*angle.at(i+y, j+x)-LUT[8])/20.0)*(*magnitude.at(i+y, j+x));
-                        cellHist.at(count1, count2)[0]+=(*angle.at(i+y, j+x)-LUT[8])/20.0*(*magnitude.at(i+y, j+x));
-                    }else cellHist.at(count1, count2)[0]+=(*magnitude.at(i+y, j+x));
+                        _bin=index*20;
+                        factorBin=(_angle-_bin)/20;
+                        if(cellY+1>=cellHistRows | cellX+1>=cellHistCols){
+                            if(cellY+1<cellHistRows && cellX+1>=cellHistCols){
+                                cellHist.at(cellY, cellX)[index]+=*magnitude.at(i+y, j+x)*(1-factorY)*(1-factorBin);
+                                cellHist.at(cellY, cellX)[index+1]+=*magnitude.at(i+y, j+x)*(1-factorY)*factorBin;
+                                cellHist.at(cellY+1, cellX)[index]+=*magnitude.at(i+y, j+x)*factorY*(1-factorBin);
+                                cellHist.at(cellY+1, cellX)[index+1]+=*magnitude.at(i+y, j+x)*factorY*factorBin;
+                            }
+                            if(cellY+1>=cellHistRows && cellX+1<cellHistCols){
+                                cellHist.at(cellY, cellX)[index]+=*magnitude.at(i+y, j+x)*(1-factorX)*(1-factorBin);
+                                cellHist.at(cellY, cellX)[index+1]+=*magnitude.at(i+y, j+x)*(1-factorX)*factorBin;
+                                cellHist.at(cellY, cellX+1)[index]+=*magnitude.at(i+y, j+x)*factorX*(1-factorBin);
+                                cellHist.at(cellY, cellX+1)[index+1]+=*magnitude.at(i+y, j+x)*factorX*factorBin;
+                            }
+                            if(cellY+1>=cellHistRows && cellX+1>=cellHistCols){
+                                cellHist.at(cellY, cellX)[index]+=*magnitude.at(i+y, j+x)*(1-factorBin);
+                                cellHist.at(cellY, cellX)[index+1]+=*magnitude.at(i+y, j+x)*factorBin;
+                            }
+                        }
+                        else{
+                            cellHist.at(cellY, cellX)[index]+=*magnitude.at(i+y, j+x)*(1-factorX)*(1-factorY)*(1-factorBin);
+                            cellHist.at(cellY, cellX)[index+1]+=*magnitude.at(i+y, j+x)*(1-factorX)*(1-factorY)*factorBin;
+                            cellHist.at(cellY, cellX+1)[index]+=*magnitude.at(i+y, j+x)*factorX*(1-factorY)*(1-factorBin);
+                            cellHist.at(cellY, cellX+1)[index+1]+=*magnitude.at(i+y, j+x)*factorX*(1-factorY)*factorBin;
+                            cellHist.at(cellY+1, cellX)[index]+=*magnitude.at(i+y, j+x)*(1-factorX)*factorY*(1-factorBin);
+                            cellHist.at(cellY+1, cellX)[index+1]+=*magnitude.at(i+y, j+x)*(1-factorX)*factorY*factorBin;
+                            cellHist.at(cellY+1, cellX+1)[index]+=*magnitude.at(i+y, j+x)*factorX*factorY*(1-factorBin);
+                            cellHist.at(cellY+1, cellX+1)[index+1]+=*magnitude.at(i+y, j+x)*factorX*factorY*factorBin;
+                        }
+                    }
+                    else{
+                        _bin=160;
+                        factorBin=(_angle-_bin)/20;
+                        if(cellY+1>=cellHistRows | cellX+1>=cellHistCols){
+                            if(cellY+1<cellHistRows && cellX+1>=cellHistCols){
+                                cellHist.at(cellY, cellX)[8]+=*magnitude.at(i+y, j+x)*(1-factorY)*(1-factorBin);
+                                cellHist.at(cellY, cellX)[0]+=*magnitude.at(i+y, j+x)*(1-factorY)*factorBin;
+                                cellHist.at(cellY+1, cellX)[8]+=*magnitude.at(i+y, j+x)*factorY*(1-factorBin);
+                                cellHist.at(cellY+1, cellX)[0]+=*magnitude.at(i+y, j+x)*factorY*factorBin;
+                            }
+                            if(cellY+1>=cellHistRows && cellX+1<cellHistCols){
+                                cellHist.at(cellY, cellX)[8]+=*magnitude.at(i+y, j+x)*(1-factorX)*(1-factorBin);
+                                cellHist.at(cellY, cellX)[0]+=*magnitude.at(i+y, j+x)*(1-factorX)*factorBin;
+                                cellHist.at(cellY, cellX+1)[8]+=*magnitude.at(i+y, j+x)*factorX*(1-factorBin);
+                                cellHist.at(cellY, cellX+1)[0]+=*magnitude.at(i+y, j+x)*factorX*factorBin;
+                            }
+                            if(cellY+1>=cellHistRows && cellX+1>=cellHistCols){
+                                cellHist.at(cellY, cellX)[8]+=*magnitude.at(i+y, j+x)*(1-factorBin);
+                                cellHist.at(cellY, cellX)[0]+=*magnitude.at(i+y, j+x)*factorBin;
+                            }
+                        }
+                        else{
+                            cellHist.at(cellY, cellX)[8]+=*magnitude.at(i+y, j+x)*(1-factorX)*(1-factorY)*(1-factorBin);
+                            cellHist.at(cellY, cellX)[0]+=*magnitude.at(i+y, j+x)*(1-factorX)*(1-factorY)*factorBin;
+                            cellHist.at(cellY, cellX+1)[8]+=*magnitude.at(i+y, j+x)*factorX*(1-factorY)*(1-factorBin);
+                            cellHist.at(cellY, cellX+1)[0]+=*magnitude.at(i+y, j+x)*factorX*(1-factorY)*factorBin;
+                            cellHist.at(cellY+1, cellX)[8]+=*magnitude.at(i+y, j+x)*(1-factorX)*factorY*(1-factorBin);
+                            cellHist.at(cellY+1, cellX)[0]+=*magnitude.at(i+y, j+x)*(1-factorX)*factorY*factorBin;
+                            cellHist.at(cellY+1, cellX+1)[8]+=*magnitude.at(i+y, j+x)*factorX*factorY*(1-factorBin);
+                            cellHist.at(cellY+1, cellX+1)[0]+=*magnitude.at(i+y, j+x)*factorX*factorY*factorBin;
+                        }
+                    }
                 }
             }
-            count2++;
+            cellX++;
         }
-        count2=0;
-        count1++;
+        cellY++;
+        cellX=0;
     }
+}
+
+void HOGFeature::computeBlockHistogram()
+{
+    int index=0;
     
-    //generate histogram of each block
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
             for(int y=0; y<blockSize/cellSize; y++){
                 for(int x=0; x<blockSize/cellSize; x++){
                     for(int k=0; k<bins; k++){
-                        blockHist.at(i, j)[count3]=cellHist.at(i+y, j+x)[k];
-                        count3++;
+                        blockHist.at(i, j)[index++]=cellHist.at(i+y, j+x)[k];
                     }
                 }
             }
-            count3=0;
+            index=0;
         }
     }
 }
 
-//normalize block histogram
-void HOGFeature::normalizeBlockHistogram()
+void HOGFeature::computeL2norm()
 {
-    vector<vector<double>> sum;
-    
-    sum.resize(blockHistRows);
-    for(int i=0; i<blockHistRows; i++){
-        sum[i].resize(blockHistCols);
-    }
-    
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
+            int sum=0;
             for(int k=0; k<blockHistSize; k++){
-                sum[i][j]+=blockHist.at(i, j)[k]*blockHist.at(i, j)[k];
+                sum+=blockHist.at(i, j)[k]*blockHist.at(i, j)[k];
             }
-            sum[i][j]=sqrt(sum[i][j])+1.0;
-        }
-    }
-    
-    //normalize histogram for each block
-    for(int i=0; i<blockHistRows; i++){
-        for(int j=0; j<blockHistCols; j++){
+            sum=sqrt(sum+0.001);
             for(int k=0; k<blockHistSize; k++){
-                blockHist.at(i, j)[k]/=sum[i][j];
+                blockHist.at(i, j)[k]=blockHist.at(i, j)[k]/sum;
             }
         }
     }
-    
-    //debug
-    //for(int i=0; i<36; i++) cout<<i+1<<" "<<" "<<" "<<bHist[0][0][i]<<endl;
 }
 
-//compute hog feature in the scanning window
 void HOGFeature::computeHOGFeature(int yWin, int xWin)
 {
-    //clear up data
-    //for(int i=0; i<hogVectorSize; i++) hogVector[i]=0;
-    
     computeCellHistogram(yWin, xWin);
-    normalizeBlockHistogram();
+    computeBlockHistogram();
+    computeL2norm();
     
-    int count=0;
+    int index=0;
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
             for(int k=0; k<blockHistSize; k++){
-                hogVector[count++]=blockHist.at(i, j)[k];
+                hogVector[index++]=blockHist.at(i, j)[k];
             }
         }
     }
-    //debug
-    //for(int i=0; i<36; i++) cout<<i+1<<" "<<" "<<HOGDescriptor[i]<<endl;
 }
 
-//save hog feature data to a file
 void HOGFeature::save(const string &filename)
 {
     ofstream output(filename, ofstream::binary);
-    //FILE *fp=fopen("hog_feature.txt", "w");
     
     if(!output){
         cerr<<"#Error: file not opened!"<<endl;
         exit(1);
     }
     
-    output<<"#hog feature"<<endl;
+    output<<"#HOG feature"<<endl;
     int i=0;
     for(auto item:hogVector){
         output<<left;
