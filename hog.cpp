@@ -27,35 +27,16 @@ void HOGFeature::initial()
     blockHistSize=9*blockSize/cellSize*blockSize/cellSize;
     hogVectorSize=blockHistSize*blockHistRows*blockHistCols;
     
-    cellHist.resize(cellHistRows);
-    for(int i=0; i<cellHistRows; i++){
-        cellHist[i].resize(cellHistCols);
-        for(int j=0; j<cellHistCols; j++){
-            cellHist[i][j].resize(9, 0);
-        }
-    }
-    
-    blockHist.resize(blockHistRows);
-    for(int i=0; i<blockHistRows; i++){
-        blockHist[i].resize(blockHistCols);
-        for(int j=0; j<blockHistCols; j++){
-            blockHist[i][j].resize(blockHistSize, 0);
-        }
-    }
+    cellHist.create(cellHistRows, cellHistCols, bins);
+    blockHist.create(blockHistRows, blockHistCols, blockHistSize);
     
     hogVector.resize(hogVectorSize, 0);
 }
 
 void HOGFeature::computeGradient(const Mat<uchar> &img)
 {
-    magnitude.resize(img.rows);
-    for(int i=0; i<img.rows; i++){
-        magnitude[i].resize(img.cols);
-    }
-    angle.resize(img.rows);
-    for(int i=0; i<img.rows; i++){
-        angle[i].resize(img.cols);
-    }
+    magnitude.create(img.rows, img.cols, 1);
+    angle.create(img.rows, img.cols, 1);
     
     Mat<uchar> padImg(img.rows+2, img.cols+2, IMG_UC1);
     
@@ -70,15 +51,15 @@ void HOGFeature::computeGradient(const Mat<uchar> &img)
                 xDelta+=k*(*padImg.at(i, j+k));
                 yDelta+=k*(*padImg.at(i+k, j));
             }
-            magnitude[i-1][j-1]=sqrt(xDelta*xDelta+yDelta*yDelta);
+            *magnitude.at(i-1, j-1)=sqrt(xDelta*xDelta+yDelta*yDelta);
             if(xDelta!=0.0){
                 theta=atan2(yDelta, xDelta)*180.0/PI;
             }else if(yDelta!=0){
                 theta=90.0;
             }else theta=0.0;
             if(theta>=0){
-                angle[i-1][j-1]=theta;
-            }else angle[i-1][j-1]=theta+180.0;
+                *angle.at(i-1, j-1)=theta;
+            }else *angle.at(i-1, j-1)=theta+180.0;
             xDelta=yDelta=0.0;
         }
     }
@@ -97,14 +78,14 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
         for(int j=xWin; j<=xWin+winWidth-cellSize; j+=cellSize){
             for(int y=0; y<cellSize; y++){
                 for(int x=0; x<cellSize; x++){
-                    index=angle[i+y][j+x]/20.0;
+                    index=*angle.at(i+y, j+x)/20.0;
                     if(index<8){
-                        cellHist[count1][count2][index]+=(1-(angle[i+y][j+x]-LUT[index])/20.0)*magnitude[i+y][j+x];
-                        cellHist[count1][count2][index+1]+=(angle[i+y][j+x]-LUT[index])/20.0*magnitude[i+y][j+x];
+                        cellHist.at(count1, count2)[index]+=(1-(*angle.at(i+y, j+x)-LUT[index])/20.0)*(*magnitude.at(i+y, j+x));
+                        cellHist.at(count1, count2)[index+1]+=(*angle.at(i+y, j+x)-LUT[index])/20.0*(*magnitude.at(i+y, j+x));
                     }else if(index==8){
-                        cellHist[count1][count2][8]+=(1-(angle[i+y][j+x]-LUT[8])/20.0)*magnitude[i+y][j+x];
-                        cellHist[count1][count2][0]+=(angle[i+y][j+x]-LUT[8])/20.0*magnitude[i+y][j+x];
-                    }else cellHist[count1][count2][0]+=magnitude[i+y][j+x];
+                        cellHist.at(count1, count2)[8]+=(1-(*angle.at(i+y, j+x)-LUT[8])/20.0)*(*magnitude.at(i+y, j+x));
+                        cellHist.at(count1, count2)[0]+=(*angle.at(i+y, j+x)-LUT[8])/20.0*(*magnitude.at(i+y, j+x));
+                    }else cellHist.at(count1, count2)[0]+=(*magnitude.at(i+y, j+x));
                 }
             }
             count2++;
@@ -119,7 +100,7 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
             for(int y=0; y<blockSize/cellSize; y++){
                 for(int x=0; x<blockSize/cellSize; x++){
                     for(int k=0; k<bins; k++){
-                        blockHist[i][j][count3]=cellHist[i+y][j+x][k];
+                        blockHist.at(i, j)[count3]=cellHist.at(i+y, j+x)[k];
                         count3++;
                     }
                 }
@@ -142,7 +123,7 @@ void HOGFeature::normalizeBlockHistogram()
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
             for(int k=0; k<blockHistSize; k++){
-                sum[i][j]+=blockHist[i][j][k]*blockHist[i][j][k];
+                sum[i][j]+=blockHist.at(i, j)[k]*blockHist.at(i, j)[k];
             }
             sum[i][j]=sqrt(sum[i][j])+1.0;
         }
@@ -152,7 +133,7 @@ void HOGFeature::normalizeBlockHistogram()
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
             for(int k=0; k<blockHistSize; k++){
-                blockHist[i][j][k]/=sum[i][j];
+                blockHist.at(i, j)[k]/=sum[i][j];
             }
         }
     }
@@ -165,21 +146,19 @@ void HOGFeature::normalizeBlockHistogram()
 void HOGFeature::computeHOGFeature(int yWin, int xWin)
 {
     //clear up data
-    for(int i=0; i<hogVectorSize; i++) hogVector[i]=0;
+    //for(int i=0; i<hogVectorSize; i++) hogVector[i]=0;
     
     computeCellHistogram(yWin, xWin);
     normalizeBlockHistogram();
     
-    cout<<"debug1"<<endl;
     int count=0;
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
             for(int k=0; k<blockHistSize; k++){
-                hogVector[count++]=blockHist[i][j][k];
+                hogVector[count++]=blockHist.at(i, j)[k];
             }
         }
     }
-    cout<<"debug2"<<endl;
     //debug
     //for(int i=0; i<36; i++) cout<<i+1<<" "<<" "<<HOGDescriptor[i]<<endl;
 }

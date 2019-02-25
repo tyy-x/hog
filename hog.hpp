@@ -17,7 +17,7 @@ namespace hog {
     
     class HOGFeature{
     private:
-        typedef std::vector<std::vector<std::vector<double>>> Hist;
+        //typedef std::vector<std::vector<std::vector<double>>> Hist;
         static int LUT[9];
         int bins=9;
         int cellSize=8;
@@ -31,10 +31,12 @@ namespace hog {
         int blockHistSize;
         int blockStride=8;
         int hogVectorSize;
-        std::vector<std::vector<double>> magnitude;
-        std::vector<std::vector<double>> angle;
-        Hist cellHist;
-        Hist blockHist;
+        img::Mat<double> magnitude;
+        img::Mat<double> angle;
+        img::Mat<double> cellHist;
+        img::Mat<double> blockHist;
+        //Hist cellHist;
+        //Hist blockHist;
         std::vector<double> hogVector;
         
         void initial();
@@ -45,26 +47,21 @@ namespace hog {
     public:
         HOGFeature() { initial();}
         ~HOGFeature() { std::cout<<"debug"<<std::endl;}
-        void processing(img::Mat<img::uchar> &img, int type);
+        void processing(img::Mat<img::uchar> &img, int type=0);
         void computeHOGFeature(int xWin, int yWin);
         void save(const std::string &filename);
     };
     
-    inline void HOGFeature::processing(img::Mat<img::uchar> &img, int type)
+    inline void HOGFeature::processing(img::Mat<img::uchar> &img, int flag)
     {
         computeGradient(img);
-        if(type) assignGradientMagnitude(img);
+        if(flag) assignGradientMagnitude(img);
     }
     
     inline void HOGFeature::assignGradientMagnitude(img::Mat<img::uchar> &img)
     {
-        for(int i=0; i<img.rows; i++){
-            for(int j=0; j<img.cols; j++){
-                if(magnitude[i][j]>255){
-                    *img.at(i, j)=255;
-                }else *img.at(i, j)=magnitude[i][j];
-            }
-        }
+        int _size=img.rows*img.cols;
+        for(int i=0; i<_size; i++) img.data[i]=magnitude.data[i];
     }
 }
 #endif /* HOG_HPP */
