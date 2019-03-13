@@ -120,21 +120,30 @@ namespace img {
         }
     }
     
-    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img)
+    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img, int filterSize)
     {
-        vector<int> filter{1, 2, 1, 2, 4, 2, 1, 2, 1};
-        vector<int> filter2{1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
+        int borderWidth=filterSize/2;
+        vector<int> filter3{1, 2, 1, 2, 4, 2, 1, 2, 1};
+        vector<int> filter5{1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
+        int factor3=16;
+        int factor5=273;
         
-        for(int i=2; i<padImg.rows-2; i++){
-            for(int j=2; j<padImg.cols-2; j++){
+        for(int i=borderWidth; i<padImg.rows-borderWidth; i++){
+            for(int j=borderWidth; j<padImg.cols-borderWidth; j++){
                 int sum=0;
                 int count=0;
-                for(int k=-2; k<=2; k++){
-                    for(int l=-2; l<=2; l++){
-                        sum+=filter2[count++]*(*padImg.at(i+k, j+l));
+                for(int k=-borderWidth; k<=borderWidth; k++){
+                    for(int l=-borderWidth; l<=borderWidth; l++){
+                        switch(filterSize){
+                            case 3: sum+=filter3[count++]*(*padImg.at(i+k, j+l)); break;
+                            case 5: sum+=filter5[count++]*(*padImg.at(i+k, j+l)); break;
+                        }
                     }
                 }
-                *img.at(i-2, j-2)=sum/273;
+                switch(filterSize){
+                    case 3: *img.at(i-borderWidth, j-borderWidth)=sum/factor3; break;
+                    case 5: *img.at(i-borderWidth, j-borderWidth)=sum/factor5; break;
+                }
             }
         }
         

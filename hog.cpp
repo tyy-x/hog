@@ -74,8 +74,8 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
     int index;
     
     //trilinear interpolation of weights
-    for(int i=yWin; i<=yWin+winHeight-cellSize; i+=8){
-        for(int j=xWin; j<=xWin+winWidth-cellSize; j+=8){
+    for(int i=yWin; i<=yWin+winHeight-cellSize; i+=cellSize){
+        for(int j=xWin; j<=xWin+winWidth-cellSize; j+=cellSize){
             cellTopBorder=cellY*cellSize+yWin;
             cellRightBorder=cellX*cellSize+xWin;
             for(int y=0; y<cellSize; y++){

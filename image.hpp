@@ -15,6 +15,7 @@ namespace img {
     typedef unsigned char uchar;
     enum {READ_GRAYSCALE, READ_COLOR};
     enum {IMG_UC1=1, IMG_UC2=2, IMG_UC3=3};
+    enum {Box, Gaussian};
     /* image class for 8-bit images*/
     template <typename T> class Mat{
     private:
@@ -29,7 +30,7 @@ namespace img {
         T *data=nullptr; //image data matrix
         
         //constructor
-        Mat() { /*debug */ std::cout<<"default constructor"<<std::endl; std::cout<<"counter: "<<counter<<std::endl;}
+        Mat() { /*debug */ /*std::cout<<"default constructor"<<std::endl; std::cout<<"counter: "<<counter<<std::endl;*/}
         Mat(int _rows, int _cols, int _depth);
         
         //overload contructor, default generate a one-channel image data matrix
@@ -65,41 +66,41 @@ namespace img {
     template <typename T>
     inline Mat<T>::Mat(int _rows, int _cols, int _depth):rows(_rows), cols(_cols), depth(_depth)
     {
-        std::cout<<"constructor1"<<std::endl;
+        //std::cout<<"constructor1"<<std::endl;
         allocate(_rows, _cols, _depth);
         size=rows*cols*depth;
-        std::cout<<"counter: "<<counter<<std::endl;
+        //std::cout<<"counter: "<<counter<<std::endl;
     }
     
     template <typename T>
     inline Mat<T>::Mat(int _rows, int _cols):rows(_rows), cols(_cols)
     {
-        std::cout<<"constructor2"<<std::endl;
+        //std::cout<<"constructor2"<<std::endl;
         allocate(_rows, _cols, depth);
         size=_rows*_cols*depth;
-        std::cout<<"counter: "<<counter<<std::endl;
+        //std::cout<<"counter: "<<counter<<std::endl;
     }
     
     template <typename T>
     inline Mat<T>::Mat(const Mat &img)
     {
-        std::cout<<"copy constructor"<<std::endl;
+        //std::cout<<"copy constructor"<<std::endl;
         size=img.size;
         rows=img.rows;
         cols=img.cols;
         depth=img.depth;
         counter=(img.counter==0) ? img.counter : img.counter+1;
         data=img.data;
-        std::cout<<"counter: "<<counter<<std::endl;
+        //std::cout<<"counter: "<<counter<<std::endl;
     }
     
     template <typename T>
     inline Mat<T>::~Mat()
     {
         counter--;
-        std::cout<<"~Mat() counter: "<<counter<<std::endl;
+        //std::cout<<"~Mat() counter: "<<counter<<std::endl;
         if(!counter){
-            std::cout<<"release"<<std::endl;
+            //std::cout<<"release"<<std::endl;
             delete[] data;
             data=nullptr;
         }
@@ -108,7 +109,7 @@ namespace img {
     template <typename T>
     inline void Mat<T>::allocate(int _rows, int _cols, int _depth)
     {
-        std::cout<<"allocate"<<std::endl;
+        //std::cout<<"allocate"<<std::endl;
         data=new T[_depth*_rows*_cols]();
         counter++;
     }
@@ -116,12 +117,12 @@ namespace img {
     template <typename T>
     Mat<T>& Mat<T>::operator=(const Mat &img)
     {
-        std::cout<<"operator="<<std::endl;
+        //std::cout<<"operator="<<std::endl;
         if(counter==1){
             delete[] data;
             data=nullptr;
             counter--;
-            std::cout<<"counter: "<<counter<<" free"<<std::endl;
+            //std::cout<<"counter: "<<counter<<" free"<<std::endl;
         }
         size=img.size;
         rows=img.rows;
@@ -129,7 +130,7 @@ namespace img {
         depth=img.depth;
         counter=(img.counter==0) ? img.counter : img.counter+1;
         data=img.data;
-        std::cout<<"counter: "<<counter<<std::endl;
+        //std::cout<<"counter: "<<counter<<std::endl;
         
         return *this;
     }

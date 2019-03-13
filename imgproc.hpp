@@ -38,7 +38,22 @@ namespace img {
      @param factor: scale factor
     */
     void scale(Mat<uchar> &dst, const Mat<uchar> &src, float factor);
-    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img);
+    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img, int filterSize);
     void gammaCorrection(Mat<uchar> &img, float gamma);
+    
+    //filtering
+    inline void filtering(Mat<uchar> &img, int type, int filterSize=3)
+    {
+        int borderWidth=filterSize/2;
+        Mat<uchar> padImg(img.rows+borderWidth*2, img.cols+borderWidth*2);
+        
+        makeBorderCopy(padImg, img, borderWidth);
+        switch(type){
+            case Gaussian: gaussian(padImg, img, filterSize); break;
+        }
+    }
+    
+    //box filter
+    void boxFiltering(Mat<uchar> &img, int filterSize);
 }
 #endif /* IMGPROC_HPP */
