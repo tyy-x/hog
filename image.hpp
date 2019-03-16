@@ -15,14 +15,15 @@ namespace img {
     typedef unsigned char uchar;
     enum {READ_GRAYSCALE, READ_COLOR};
     enum {IMG_UC1=1, IMG_UC2=2, IMG_UC3=3};
-    enum {Box, Gaussian};
+    enum {Box, Prewitt, Sobel, Gaussian};
     /* image class for 8-bit images*/
     template <typename T> class Mat{
     private:
-        int counter=0; //when counter reacher 0, release the memory for data matrix
         int size=0; //data size
-        int depth=IMG_UC1; //depth of pixel value
-        void allocate(int _rows, int _cols, int _depth); //allocate memory
+        uchar depth=IMG_UC1; //depth of pixel value
+        void allocate(int _rows, int _cols, uchar _depth); //allocate memory
+        void release(); //release memory
+        void copyFrom(const Mat<T> &img); //copy data
         
     public:
         int rows=0; //rows of image
@@ -30,8 +31,8 @@ namespace img {
         T *data=nullptr; //image data matrix
         
         //constructor
-        Mat() { /*debug */ /*std::cout<<"default constructor"<<std::endl; std::cout<<"counter: "<<counter<<std::endl;*/}
-        Mat(int _rows, int _cols, int _depth);
+        Mat() { /*debug */ /*std::cout<<"default constructor"<<std::endl;*/}
+        Mat(int _rows, int _cols, uchar _depth);
         
         //overload contructor, default generate a one-channel image data matrix
         Mat(int _rows, int _cols);
@@ -39,13 +40,20 @@ namespace img {
         //copy constructor
         Mat(const Mat &img);
         
+        //To do
+        //copy data from vector or array
+        Mat(int _rows, int _cols, std::vector<T> &vec);
+        Mat(int _rows, int _cols, std::vector<std::vector<T>> &vec);
+        Mat(int _rows, int _cols, const T *_data);
+        Mat(int _rows, int _cols, const T **_data);
+        
         //destructor
         ~Mat();
         //overload assignment operator
         Mat& operator=(const Mat &img);
         
         //create a data matrix
-        void create(int _rows, int _cols, int _depth);
+        void create(int _rows, int _cols, uchar _depth);
         
         //return pointer which points to the first element of every row of the data matrix
         T* rowPtr(int _rows);
@@ -58,18 +66,14 @@ namespace img {
         */
         T* at(int _rows, int _cols);
         const T* at(int _rows, int _cols) const;
-        
-        //copy an existence Image object with the same channel number
-        void copy(const Mat &img);
     };
     
     template <typename T>
-    inline Mat<T>::Mat(int _rows, int _cols, int _depth):rows(_rows), cols(_cols), depth(_depth)
+    inline Mat<T>::Mat(int _rows, int _cols, uchar _depth):rows(_rows), cols(_cols), depth(_depth)
     {
         //std::cout<<"constructor1"<<std::endl;
         allocate(_rows, _cols, _depth);
         size=rows*cols*depth;
-        //std::cout<<"counter: "<<counter<<std::endl;
     }
     
     template <typename T>
@@ -78,7 +82,6 @@ namespace img {
         //std::cout<<"constructor2"<<std::endl;
         allocate(_rows, _cols, depth);
         size=_rows*_cols*depth;
-        //std::cout<<"counter: "<<counter<<std::endl;
     }
     
     template <typename T>
@@ -89,54 +92,57 @@ namespace img {
         rows=img.rows;
         cols=img.cols;
         depth=img.depth;
-        counter=(img.counter==0) ? img.counter : img.counter+1;
-        data=img.data;
-        //std::cout<<"counter: "<<counter<<std::endl;
+        data=new T[depth*rows*cols];
+        copyFrom(img);
     }
     
     template <typename T>
     inline Mat<T>::~Mat()
     {
-        counter--;
-        //std::cout<<"~Mat() counter: "<<counter<<std::endl;
-        if(!counter){
-            //std::cout<<"release"<<std::endl;
+        //std::cout<<"~Mat()"<<std::endl;
+        release();
+    }
+    
+    template <typename T>
+    inline void Mat<T>::allocate(int _rows, int _cols, uchar _depth)
+    {
+        //std::cout<<"allocate"<<std::endl;
+        data=new T[_depth*_rows*_cols]();
+    }
+    
+    template <typename T>
+    inline void Mat<T>::release()
+    {
+        if(data){
+            //std::cout<<"release memory"<<std::endl;
             delete[] data;
             data=nullptr;
         }
     }
     
     template <typename T>
-    inline void Mat<T>::allocate(int _rows, int _cols, int _depth)
+    inline void Mat<T>::copyFrom(const Mat<T> &img)
     {
-        //std::cout<<"allocate"<<std::endl;
-        data=new T[_depth*_rows*_cols]();
-        counter++;
+        for(int i=0; i<size; i++) data[i]=img.data[i];
     }
     
     template <typename T>
     Mat<T>& Mat<T>::operator=(const Mat &img)
     {
         //std::cout<<"operator="<<std::endl;
-        if(counter==1){
-            delete[] data;
-            data=nullptr;
-            counter--;
-            //std::cout<<"counter: "<<counter<<" free"<<std::endl;
-        }
         size=img.size;
         rows=img.rows;
         cols=img.cols;
         depth=img.depth;
-        counter=(img.counter==0) ? img.counter : img.counter+1;
-        data=img.data;
-        //std::cout<<"counter: "<<counter<<std::endl;
+        release();
+        data=new T[depth*rows*cols];
+        copyFrom(img);
         
         return *this;
     }
     
     template <typename T>
-    inline void Mat<T>::create(int _rows, int _cols, int _depth)
+    inline void Mat<T>::create(int _rows, int _cols, uchar _depth)
     {
         allocate(_rows, _cols, _depth);
         size=_rows*_cols*_depth;
@@ -183,17 +189,6 @@ namespace img {
             exit(1);
         }
         return data+_rows*cols*depth+_cols*depth;
-    }
-    
-    template <typename T>
-    inline void Mat<T>::copy(const Mat &img)
-    {
-        if(depth!=img.depth | rows!=img.rows | cols!=img.cols){
-            std::cerr<<"copy failed"<<std::endl;
-            exit(1);
-        }
-        int _size=rows*cols*depth;
-        for(int i=0; i<_size; i++) data[i]=img.data[i];
     }
 }
 

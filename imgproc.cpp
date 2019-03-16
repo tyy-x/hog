@@ -120,7 +120,59 @@ namespace img {
         }
     }
     
-    void gaussian(Mat<uchar> &padImg, Mat<uchar> &img, int filterSize)
+    void boxFiltering(const Mat<uchar> &padImg, Mat<uchar> &img, int filterSize)
+    {
+        Mat<uchar> filter(filterSize, filterSize);
+        int factor=filterSize*filterSize;
+        int borderWidth=filterSize/2;
+        
+        for(int i=0; i<filterSize*filterSize; i++) filter.data[i]=1;
+        for(int i=borderWidth; i<padImg.rows-borderWidth; i++){
+            for(int j=borderWidth; j<padImg.cols-borderWidth; j++){
+                int sum=0;
+                for(int k=-borderWidth; k<=borderWidth; k++){
+                    for(int l=-borderWidth; l<=borderWidth; l++){
+                        sum+=*padImg.at(i+k, j+l);
+                    }
+                }
+                *img.at(i-borderWidth, j-borderWidth)=sum/factor;
+            }
+        }
+    }
+    
+    void prewitt(const Mat<uchar> &padImg, Mat<uchar> &img)
+    {
+        for(int i=1; i<padImg.rows-1; i++){
+            for(int j=1; j<padImg.cols-1; j++){
+                int sumx=0, sumy=0;
+                for(int k=-1; k<=1; k++){
+                    for(int l=-1; l<=1; l++){
+                        sumx+=l*(*padImg.at(i+k, j+l));
+                        sumy+=k*(*padImg.at(i+k, j+l));
+                    }
+                }
+                *img.at(i-1, j-1)=sqrt(sumx*sumx+sumy*sumy);
+            }
+        }
+    }
+    
+    void sobel(const Mat<uchar> &padImg, Mat<uchar> &img)
+    {
+        for(int i=1; i<padImg.rows-1; i++){
+            for(int j=1; j<padImg.cols-1; j++){
+                int sumx=0, sumy=0;
+                for(int k=-1; k<=1; k++){
+                    for(int l=-1; l<=1; l++){
+                        sumx+=(!k ? 2*l:l)*(*padImg.at(i+k, j+l));
+                        sumy+=(!l ? 2*k:k)*(*padImg.at(i+k, j+l));
+                    }
+                }
+                *img.at(i-1, j-1)=sqrt(sumx*sumx+sumy*sumy);
+            }
+        }
+    }
+    
+    void gaussian(const Mat<uchar> &padImg, Mat<uchar> &img, int filterSize)
     {
         int borderWidth=filterSize/2;
         vector<int> filter3{1, 2, 1, 2, 4, 2, 1, 2, 1};
@@ -146,7 +198,6 @@ namespace img {
                 }
             }
         }
-        
     }
     
     void gammaCorrection(Mat<uchar> &img, float gamma)

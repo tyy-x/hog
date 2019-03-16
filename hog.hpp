@@ -47,6 +47,7 @@ namespace hog {
         void processing(img::Mat<img::uchar> &img, int type=0); //preprocessing image to compute gradient
         void computeHOGFeature(int xWin, int yWin); //compute hog feature in the scanning window
         void save(const std::string &filename); //save hog descriptor data to file
+        int get_hogVector_size() { return hogVectorSize;}
     };
     
     inline void HOGFeature::processing(img::Mat<img::uchar> &img, int flag)
