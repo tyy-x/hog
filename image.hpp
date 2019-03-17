@@ -144,11 +144,13 @@ namespace img {
     template <typename T>
     inline void Mat<T>::create(int _rows, int _cols, uchar _depth)
     {
-        allocate(_rows, _cols, _depth);
-        size=_rows*_cols*_depth;
-        rows=_rows;
-        cols=_cols;
-        depth=_depth;
+        if(!data){
+            allocate(_rows, _cols, _depth);
+            size=_rows*_cols*_depth;
+            rows=_rows;
+            cols=_cols;
+            depth=_depth;
+        }
     }
 
     template <typename T>

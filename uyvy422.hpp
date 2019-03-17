@@ -25,6 +25,8 @@ namespace img {
     
     //data layout becomes y0u0v0y1u1v1... after convert
     void convertToYUV444(Mat<uchar> &dst, const Mat<uchar> &src);
+    //convert yuv444 back to uyvy422
+    void convertToUYVY422(Mat<uchar> &dst, const Mat<uchar> &src);
     
     /* extract luminance channel
      @param dst for one channel grayscale image matrix
@@ -37,10 +39,13 @@ namespace img {
     }
     
     //merge luminance channel
-    inline void merge(const Mat<uchar> &luma, Mat<uchar> &img)
+    inline void mergeLuma(const Mat<uchar> &luma, Mat<uchar> &img)
     {
         int _size=img.rows*img.cols;
         for(int i=0; i<_size; i++) img.data[i*2+1]=luma.data[i];
     }
+    
+    //scale uyvy422
+    void scaleUYVY422(Mat<uchar> &dst, const Mat<uchar> &src, float factor);
 }
 #endif /* UYVY422_HPP */

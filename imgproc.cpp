@@ -14,18 +14,27 @@
 using namespace std;
 
 namespace img {
-    /*
-     void split(const Image &img, Image &channel0, Image &channel1, Image &channel2)
+     void split(const Mat<uchar> &img, Mat<uchar> &channel0, Mat<uchar> &channel1, Mat<uchar> &channel2)
      {
-     for(int i=0; i<img.rows; i++){
-     for(int j=0; j<img.cols; j++){
-     *channel0.at(i, j)=img.at(i, j)[0];
-     *channel1.at(i, j)=img.at(i, j)[1];
-     *channel2.at(i, j)=img.at(i, j)[2];
+         for(int i=0; i<img.rows; i++){
+             for(int j=0; j<img.cols; j++){
+                 *channel0.at(i, j)=img.at(i, j)[0];
+                 *channel1.at(i, j)=img.at(i, j)[1];
+                 *channel2.at(i, j)=img.at(i, j)[2];
+             }
+         }
      }
-     }
-     }
-     */
+    
+    void merge(Mat<uchar> &dst, const Mat<uchar> &channel0, const Mat<uchar> &channel1, const Mat<uchar> &channel2)
+    {
+        for(int i=0; i<dst.rows; i++){
+            for(int j=0; j<dst.cols; j++){
+                dst.at(i, j)[0]=*channel0.at(i, j);
+                dst.at(i, j)[1]=*channel1.at(i, j);
+                dst.at(i, j)[2]=*channel2.at(i, j);
+            }
+        }
+    }
     
     //contrast stretch
     void stretch(Mat<uchar> &img, int min, int max)

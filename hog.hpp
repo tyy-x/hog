@@ -28,11 +28,6 @@ namespace hog {
         int blockHistCols; //number of block histogram along y direction in one window
         int blockHistSize; //number of bins of one block histogram
         int hogVectorSize; //dimension of hog descriptor
-        img::Mat<double> magnitude; //data matrix of gradient magnitude
-        img::Mat<double> angle; //data matrix of gradient orientation
-        img::Mat<double> cellHist; //data matrix of cell histogram
-        img::Mat<double> blockHist; //data matrix of block histogram
-        std::vector<double> hogVector; //final hog descriptor in one window
         
         void initial();
         void computeGradient(const img::Mat<img::uchar> &img);
@@ -41,6 +36,12 @@ namespace hog {
         void computeBlockHistogram();
         void computeL2norm(); //normalize block histogram usr L2-norm method
     public:
+        img::Mat<double> magnitude; //data matrix of gradient magnitude
+        img::Mat<double> angle; //data matrix of gradient orientation
+        img::Mat<double> cellHist; //data matrix of cell histogram
+        img::Mat<double> blockHist; //data matrix of block histogram
+        std::vector<double> hogVector; //final hog descriptor in one window
+        
         HOGFeature() { initial();}
         HOGFeature(int _winHeight, int _winWidth):winHeight(_winHeight), winWidth(_winWidth) { initial();}
         ~HOGFeature() { /*std::cout<<"debug"<<std::endl;*/}

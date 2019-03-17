@@ -12,6 +12,11 @@
 #include "image.hpp"
 
 namespace img {
+    //split 3-channel image to 3 one-channel image
+    void split(const Mat<uchar> &src, Mat<uchar> &channel0, Mat<uchar> &channel1, Mat<uchar> &channel2);
+    //merge 3 one-channel image into one 3-channel image
+    void merge(Mat<uchar> &dst, const Mat<uchar> &channel0, const Mat<uchar> &channel1, const Mat<uchar> &channel2);
+    
     //contrast stretch
     void stretch(Mat<uchar> &img, int min, int max);
     

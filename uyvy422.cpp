@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include "imgproc.hpp"
 #include "uyvy422.hpp"
 using namespace std;
 
@@ -86,23 +87,62 @@ namespace img {
     
     void convertToYUV444(Mat<uchar> &dst, const Mat<uchar> &src)
     {
-        int _size=dst.rows*dst.cols;
-        vector<uchar> luma(_size);
-        vector<uchar> chromU(_size);
-        vector<uchar> chromV(_size);
+        dst.create(src.rows, src.cols, IMG_UC3);
+        int _size=src.rows*src.cols;
         
-        for(int i=0; i<_size; i++) luma[i]=src.data[i*2+1];
+        for(int i=0; i<_size; i++) dst.data[i*3]=src.data[i*2+1];
         for(int i=0; i<_size/2; i++){
-            chromU[i]=src.data[i*4];
-            chromV[i]=src.data[i*4+2];
+            dst.data[i*6+1]=src.data[i*4];
+            dst.data[i*6+4]=src.data[i*4];
+            dst.data[i*6+2]=src.data[i*4+2];
+            dst.data[i*6+5]=src.data[i*4+2];
+        }
+    }
+    
+    void convertToUYVY422(Mat<uchar> &dst, const Mat<uchar> &src)
+    {
+        int _rows=src.rows;
+        int _cols=src.cols;
+        vector<uchar> chromaU(_rows*_cols/2);
+        vector<uchar> chromaV(chromaU);
+        
+        for(int i=0; i<_rows*_cols/2; i++){
+            chromaU[i]=(src.data[i*6+1]+src.data[i*6+4])/2;
+            chromaV[i]=(src.data[i*6+2]+src.data[i*6+5])/2;
         }
         
-        for(int i=0; i<_size; i++) dst.data[i*3]=luma[i];
-        for(int i=0; i<_size/2; i++){
-            dst.data[i*6+1]=chromU[i];
-            dst.data[i*6+4]=chromU[i];
-            dst.data[i*6+2]=chromV[i];
-            dst.data[i*6+5]=chromV[i];
+        dst.create(_rows, _cols, IMG_UC2);
+        for(int i=0; i<_rows*_cols; i++) dst.data[i*2+1]=src.data[i*3];
+        for(int i=0; i<_rows*_cols/2; i++){
+            dst.data[i*4]=chromaU[i];
+            dst.data[i*4+2]=chromaV[i];
         }
+    }
+    
+    void scaleUYVY422(Mat<uchar> &dst,  const Mat<uchar> &src, float factor)
+    {
+        Mat<uchar> src444(src.rows, src.cols, IMG_UC3);
+        convertToYUV444(src444, src);
+        Mat<uchar> channel0(src.rows, src.cols);
+        Mat<uchar> channel1(channel0);
+        Mat<uchar> channel2(channel0);
+        
+        split(src444, channel0, channel1, channel2);
+        
+        int nrows=src.rows*factor;
+        int ncols=src.cols*factor;
+        Mat<uchar> nchannel0(nrows, ncols);
+        Mat<uchar> nchannel1(nchannel0);
+        Mat<uchar> nchannel2(nchannel0);
+        
+        scale(nchannel0, channel0, factor);
+        scale(nchannel1, channel1, factor);
+        scale(nchannel2, channel2, factor);
+        
+        Mat<uchar> dst444(nrows, ncols, IMG_UC3);
+        
+        merge(dst444, nchannel0, nchannel1, nchannel2);
+        dst.create(nrows, ncols, IMG_UC2);
+        convertToUYVY422(dst, dst444);
     }
 }
