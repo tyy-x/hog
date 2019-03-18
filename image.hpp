@@ -68,6 +68,16 @@ namespace img {
         const T* at(int _rows, int _cols) const;
     };
     
+    struct Point{
+        float x;
+        float y;
+    };
+    
+    struct Rect{
+        Point ulpoint;
+        Point lrpoint;
+    };
+    
     template <typename T>
     inline Mat<T>::Mat(int _rows, int _cols, uchar _depth):rows(_rows), cols(_cols), depth(_depth)
     {
