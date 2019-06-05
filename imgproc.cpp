@@ -222,4 +222,16 @@ namespace img {
             }
         }
     }
+    
+    void drawBorder(const Rect &roi, Mat<uchar> &img)
+    {
+        for(int i=(int)roi.point1.y-1; i!=(int)roi.point2.y+1; i++){
+            *img.at(i, (int)roi.point1.x-1)=255;
+            *img.at(i, (int)roi.point2.x+1)=255;
+        }
+        for(int i=(int)roi.point1.x-1; i!=(int)roi.point2.x+1; i++){
+            *img.at((int)roi.point1.y-1, i)=255;
+            *img.at((int)roi.point2.y+1, i)=255;
+        }
+    }
 }

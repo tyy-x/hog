@@ -71,12 +71,48 @@ namespace img {
     struct Point{
         float x;
         float y;
+        Point() {}
+        Point(float _x, float _y):x(_x), y(_y) {}
+        Point(const Point &obj):x(obj.x), y(obj.y) {}
+        Point operator=(const Point &obj);
     };
     
+    inline Point Point::operator=(const Point &obj)
+    {
+        x=obj.x;
+        y=obj.y;
+        return *this;
+    }
+    
     struct Rect{
-        Point ulpoint;
-        Point lrpoint;
+        Point point1;
+        Point point2;
+        Point center;
+        float width;
+        float height;
+        Rect() {}
+        Rect(Point _point1, Point _point2);
+        Rect(const Rect &obj):point1(obj.point1), point2(obj.point2), center(obj.center), width(obj.width), height(obj.height) {}
+        Rect operator=(const Rect &obj);
     };
+    
+    inline Rect::Rect(Point _point1, Point _point2):point1(_point1), point2(_point2)
+    {
+        width=point2.x-point1.x;
+        height=point2.y-point1.y;
+        center.x=point1.x+width/2.f;
+        center.y=point1.y+height/2.f;
+    }
+    
+    inline Rect Rect::operator=(const Rect &obj)
+    {
+        point1=obj.point1;
+        point2=obj.point2;
+        width=obj.width;
+        height=obj.height;
+        center=obj.center;
+        return *this;
+    }
     
     template <typename T>
     inline Mat<T>::Mat(int _rows, int _cols, uchar _depth):rows(_rows), cols(_cols), depth(_depth)
@@ -188,6 +224,7 @@ namespace img {
     {
         if((_rows*cols*depth+_cols*depth)>=size){
             std::cerr<<"#ERROR: BAD ACCESS"<<std::endl;
+            std::cerr<<_rows*cols*depth+_cols*depth<<std::endl;
             exit(1);
         }
         return data+_rows*cols*depth+_cols*depth;

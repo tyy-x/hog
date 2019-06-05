@@ -67,9 +67,9 @@ void HOGFeature::computeGradient(const Mat<uchar> &img)
 void HOGFeature::computeCellHistogram(int yWin, int xWin)
 {
     int startX=xWin+4;
-    int endX=(cellHistCols-2)*cellSize+4;
+    int endX=xWin+(cellHistCols-2)*cellSize+4;
     int startY=yWin+4;
-    int endY=(cellHistRows-2)*cellSize+4;
+    int endY=yWin+(cellHistRows-2)*cellSize+4;
     int cellY=0, cellX=0;
     int index;
     double _angle, weight;
@@ -78,9 +78,9 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
     //trilinear interpolation
     //interpolation over pixel region except the border of image
     for(int i=startY; i<=endY; i+=cellSize){
+        float topBorder=yWin+cellY*cellSize+3.5f;
         for(int j=startX; j<=endX; j+=cellSize){
-            float topBorder=cellY*cellSize+3.5f;
-            float leftBorder=cellX*cellSize+3.5f;
+            float leftBorder=xWin+cellX*cellSize+3.5f;
             for(int y=0; y<cellSize; y++){
                 for(int x=0; x<cellSize; x++){
                     _angle=*angle.at(i+y, j+x);
@@ -116,177 +116,197 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
         cellX=0;
         cellY++;
     }
+    
     //interpolation at the upper left corner
     for(int i=yWin; i<startY; i++){
         for(int j=xWin; j<startX; j++){
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
+            factorX=(j-xWin+4.5)/cellSize;
+            factorY=(i-yWin+4.5)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(0, 0)[index]+=weight*(1-factorBin);
-                cellHist.at(0, 0)[index+1]+=weight*factorBin;
+                cellHist.at(0, 0)[index]+=weight*factorX*factorY*(1-factorBin);
+                cellHist.at(0, 0)[index+1]+=weight*factorX*factorY*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(0, 0)[8]+=weight*(1-factorBin);
-                cellHist.at(0, 0)[0]+=weight*factorBin;
+                cellHist.at(0, 0)[8]+=weight*factorX*factorY*(1-factorBin);
+                cellHist.at(0, 0)[0]+=weight*factorX*factorY*factorBin;
             }
         }
     }
+    
     //interpolation at the upper right corner
     for(int i=yWin; i<startY; i++){
-        for(int j=xWin+(cellHistCols-1)*cellSize+4; j<xWin+winWidth; j++){
+        for(int j=startX+(cellHistCols-1)*cellSize; j<xWin+winWidth; j++){
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
+            factorX=(j-xWin-3.5-(cellHistCols-1)*8)/cellSize;
+            factorY=(i-yWin+4.5)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(0, cellHistCols-1)[index]+=weight*(1-factorBin);
-                cellHist.at(0, cellHistCols-1)[index+1]+=weight*factorBin;
+                cellHist.at(0, cellHistCols-1)[index]+=weight*(1-factorX)*factorY*(1-factorBin);
+                cellHist.at(0, cellHistCols-1)[index+1]+=weight*(1-factorX)*factorY*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(0, cellHistCols-1)[8]+=weight*(1-factorBin);
-                cellHist.at(0, cellHistCols-1)[0]+=weight*factorBin;
+                cellHist.at(0, cellHistCols-1)[8]+=weight*(1-factorX)*factorY*(1-factorBin);
+                cellHist.at(0, cellHistCols-1)[0]+=weight*(1-factorX)*factorY*factorBin;
             }
         }
     }
+    
     //interpolation at the lower left corner
-    for(int i=yWin+(cellHistRows-1)*cellSize+4; i<yWin+winHeight; i++){
+    for(int i=startY+(cellHistRows-1)*cellSize; i<yWin+winHeight; i++){
         for(int j=xWin; j<startX; j++){
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
+            factorX=(j-xWin+4.5)/cellSize;
+            factorY=(i-yWin-3.5-(cellHistRows-1)*8)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(cellHistRows-1, 0)[index]+=weight*(1-factorBin);
-                cellHist.at(cellHistRows-1, 0)[index+1]+=weight*factorBin;
+                cellHist.at(cellHistRows-1, 0)[index]+=weight*factorX*(1-factorY)*(1-factorBin);
+                cellHist.at(cellHistRows-1, 0)[index+1]+=weight*factorX*(1-factorY)*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(cellHistRows-1, 0)[8]+=weight*(1-factorBin);
-                cellHist.at(cellHistRows-1, 0)[0]+=weight*factorBin;
+                cellHist.at(cellHistRows-1, 0)[8]+=weight*factorX*(1-factorY)*(1-factorBin);
+                cellHist.at(cellHistRows-1, 0)[0]+=weight*factorX*(1-factorY)*factorBin;
             }
         }
     }
+    
     //interpolation at the lower right corner
-    for(int i=yWin+(cellHistRows-1)*cellSize+4; i<yWin+winHeight; i++){
-        for(int j=xWin+(cellHistCols-1)*cellSize+4; j<xWin+winWidth; j++){
+    for(int i=startY+(cellHistRows-1)*cellSize; i<yWin+winHeight; i++){
+        for(int j=startX+(cellHistCols-1)*cellSize; j<xWin+winWidth; j++){
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
+            factorX=(j-xWin-3.5-(cellHistCols-1)*8)/cellSize;
+            factorY=(i-yWin-3.5-(cellHistRows-1)*8)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(cellHistRows-1, cellHistCols-1)[index]+=weight*(1-factorBin);
-                cellHist.at(cellHistRows-1, cellHistCols-1)[index+1]+=weight*factorBin;
+                cellHist.at(cellHistRows-1, cellHistCols-1)[index]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
+                cellHist.at(cellHistRows-1, cellHistCols-1)[index+1]+=weight*(1-factorX)*(1-factorY)*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(cellHistRows-1, cellHistCols-1)[8]+=weight*(1-factorBin);
-                cellHist.at(cellHistRows-1, cellHistCols-1)[0]+=weight*factorBin;
+                cellHist.at(cellHistRows-1, cellHistCols-1)[8]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
+                cellHist.at(cellHistRows-1, cellHistCols-1)[0]+=weight*(1-factorX)*(1-factorY)*factorBin;
             }
         }
     }
+    
     //interpolation at the upper boundary
     for(int i=yWin; i<startY; i++){
         for(int j=startX; j<=endX; j+=cellSize){
-            float leftBorder=cellX*cellSize+3.5f;
+            float leftBorder=xWin+cellX*cellSize+3.5f;
             for(int x=0; x<cellSize; x++){
                 _angle=*angle.at(i, j+x);
                 index=_angle/20;
                 weight=*magnitude.at(i, j+x);
                 factorX=(j+x-leftBorder)/cellSize;
+                factorY=(i-yWin+4.5)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(0, cellX)[index]+=weight*(1-factorX)*(1-factorBin);
-                    cellHist.at(0, cellX)[index+1]+=weight*(1-factorX)*factorBin;
-                    cellHist.at(0, cellX+1)[index]+=weight*factorX*(1-factorBin);
-                    cellHist.at(0, cellX+1)[index+1]+=weight*factorX*factorBin;
+                    cellHist.at(0, cellX)[index]+=weight*(1-factorX)*factorY*(1-factorBin);
+                    cellHist.at(0, cellX)[index+1]+=weight*(1-factorX)*factorY*factorBin;
+                    cellHist.at(0, cellX+1)[index]+=weight*factorX*factorY*(1-factorBin);
+                    cellHist.at(0, cellX+1)[index+1]+=weight*factorX*factorY*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
-                    cellHist.at(0, cellX)[8]+=weight*(1-factorX)*(1-factorBin);
-                    cellHist.at(0, cellX)[0]+=weight*(1-factorX)*factorBin;
-                    cellHist.at(0, cellX+1)[8]+=weight*factorX*(1-factorBin);
-                    cellHist.at(0, cellX+1)[0]+=weight*factorX*factorBin;
+                    cellHist.at(0, cellX)[8]+=weight*(1-factorX)*factorY*(1-factorBin);
+                    cellHist.at(0, cellX)[0]+=weight*(1-factorX)*factorY*factorBin;
+                    cellHist.at(0, cellX+1)[8]+=weight*factorX*factorY*(1-factorBin);
+                    cellHist.at(0, cellX+1)[0]+=weight*factorX*factorY*factorBin;
                 }
             }
             cellX++;
         }
         cellX=0;
     }
+
     //interpolation at the lower boundary
-    for(int i=yWin+(cellHistRows-1)*cellSize+4; i<yWin+winHeight; i++){
+    for(int i=startY+(cellHistRows-1)*cellSize; i<yWin+winHeight; i++){
         for(int j=startX; j<=endX; j+=cellSize){
-            float leftBorder=cellX*cellSize+3.5f;
+            float leftBorder=xWin+cellX*cellSize+3.5f;
             for(int x=0; x<cellSize; x++){
                 _angle=*angle.at(i, j+x);
                 index=_angle/20;
                 weight=*magnitude.at(i, j+x);
                 factorX=(j+x-leftBorder)/cellSize;
+                factorY=(i-yWin-3.5-(cellHistRows-1)*8)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(cellHistRows-1, cellX)[index]+=weight*(1-factorX)*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX)[index+1]+=weight*(1-factorX)*factorBin;
-                    cellHist.at(cellHistRows-1, cellX+1)[index]+=weight*factorX*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX+1)[index+1]+=weight*factorX*factorBin;
+                    cellHist.at(cellHistRows-1, cellX)[index]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX)[index+1]+=weight*(1-factorX)*(1-factorY)*factorBin;
+                    cellHist.at(cellHistRows-1, cellX+1)[index]+=weight*factorX*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX+1)[index+1]+=weight*factorX*(1-factorY)*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
-                    cellHist.at(cellHistRows-1, cellX)[8]+=weight*(1-factorX)*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX)[0]+=weight*(1-factorX)*factorBin;
-                    cellHist.at(cellHistRows-1, cellX+1)[8]+=weight*factorX*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX+1)[0]+=weight*factorX*factorBin;
+                    cellHist.at(cellHistRows-1, cellX)[8]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX)[0]+=weight*(1-factorX)*(1-factorY)*factorBin;
+                    cellHist.at(cellHistRows-1, cellX+1)[8]+=weight*factorX*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX+1)[0]+=weight*factorX*(1-factorY)*factorBin;
                 }
             }
             cellX++;
         }
         cellX=0;
     }
+    
     //interpolation at the left boundary
     cellY=0;
     for(int i=startY; i<=endY; i+=cellSize){
+        float topBorder=yWin+cellY*cellSize+3.5f;
         for(int j=xWin; j<startX; j++){
-            float topBorder=cellY*cellSize+3.5f;
             for(int y=0; y<cellSize; y++){
                 _angle=*angle.at(i+y, j);
                 index=_angle/20;
                 weight=*magnitude.at(i+y, j);
+                factorX=(j-xWin+4.5)/cellSize;
                 factorY=(i+y-topBorder)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(cellY, 0)[index]+=weight*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellY, 0)[index+1]+=weight*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, 0)[index]+=weight*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, 0)[index+1]+=weight*factorY*factorBin;
+                    cellHist.at(cellY, 0)[index]+=weight*factorX*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellY, 0)[index+1]+=weight*factorX*(1-factorY)*factorBin;
+                    cellHist.at(cellY+1, 0)[index]+=weight*factorX*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, 0)[index+1]+=weight*factorX*factorY*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
-                    cellHist.at(cellY, 0)[8]+=weight*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellY, 0)[0]+=weight*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, 0)[8]+=weight*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, 0)[0]+=weight*factorY*factorBin;
+                    cellHist.at(cellY, 0)[8]+=weight*factorX*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellY, 0)[0]+=weight*factorX*(1-factorY)*factorBin;
+                    cellHist.at(cellY+1, 0)[8]+=weight*factorX*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, 0)[0]+=weight*factorX*factorY*factorBin;
                 }
             }
         }
         cellY++;
     }
+    
     //interpolation at the right boundary
     cellY=0;
     for(int i=startY; i<=endY; i+=cellSize){
-        for(int j=xWin+(cellHistCols-1)*cellSize+4; j<xWin+winWidth; j++){
-            float topBorder=cellY*cellSize+3.5f;
+        float topBorder=yWin+cellY*cellSize+3.5f;
+        for(int j=startX+(cellHistCols-1)*cellSize; j<xWin+winWidth; j++){
             for(int y=0; y<cellSize; y++){
                 _angle=*angle.at(i+y, j);
                 index=_angle/20;
                 weight=*magnitude.at(i+y, j);
+                factorX=(j-xWin-3.5-(cellHistCols-1)*8)/cellSize;
                 factorY=(i+y-topBorder)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(cellY, cellHistCols-1)[index]+=weight*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellY, cellHistCols-1)[index+1]+=weight*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, cellHistCols-1)[index]+=weight*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, cellHistCols-1)[index+1]+=weight*factorY*factorBin;
+                    cellHist.at(cellY, cellHistCols-1)[index]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellY, cellHistCols-1)[index+1]+=weight*(1-factorX)*(1-factorY)*factorBin;
+                    cellHist.at(cellY+1, cellHistCols-1)[index]+=weight*(1-factorX)*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, cellHistCols-1)[index+1]+=weight*(1-factorX)*factorY*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
                     cellHist.at(cellY, cellHistCols-1)[8]+=weight*(1-factorY)*(1-factorBin);
                     cellHist.at(cellY, cellHistCols-1)[0]+=weight*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, cellHistCols-1)[8]+=weight*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, cellHistCols-1)[0]+=weight*factorY*factorBin;
+                    cellHist.at(cellY+1, cellHistCols-1)[8]+=weight*(1-factorX)*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, cellHistCols-1)[0]+=weight*(1-factorX)*factorY*factorBin;
                 }
             }
         }

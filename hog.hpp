@@ -35,6 +35,7 @@ namespace hog {
         void computeCellHistogram(int yWin, int xWin); //compute cell histogram use trilinear interpolation
         void computeBlockHistogram();
         void computeL2norm(); //normalize block histogram usr L2-norm method
+    
     public:
         img::Mat<double> magnitude; //data matrix of gradient magnitude
         img::Mat<double> angle; //data matrix of gradient orientation
@@ -46,7 +47,7 @@ namespace hog {
         HOGFeature(int _winHeight, int _winWidth):winHeight(_winHeight), winWidth(_winWidth) { initial();}
         ~HOGFeature() { /*std::cout<<"debug"<<std::endl;*/}
         void processing(img::Mat<img::uchar> &img, int type=0); //preprocessing image to compute gradient
-        void computeHOGFeature(int xWin, int yWin); //compute hog feature in the scanning window
+        void computeHOGFeature(int yWin, int xWin); //compute hog feature in the scanning window
         void save(const std::string &filename); //save hog descriptor data to file
         int get_hogVector_size() { return hogVectorSize;}
     };

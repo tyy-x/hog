@@ -65,5 +65,8 @@ namespace img {
             case Gaussian: gaussian(padImg, img, filterSize); break;
         }
     }
+    
+    //draw a box border on an gray image
+    void drawBorder(const Rect &roi, Mat<uchar> &img);
 }
 #endif /* IMGPROC_HPP */
