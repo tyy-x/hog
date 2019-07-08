@@ -37,7 +37,6 @@ public:
     int maxIteration=20;
     
     MeanShiftTracker() {}
-    //MeanShiftTracker(const img::Point targetPoint, const int width, const int height, const img::Mat<img::uchar> &frame);
     MeanShiftTracker(const img::Rect _roi, img::Mat<img::uchar> &_initial_frame);
     void processing(const img::Mat<img::uchar> &_current_frame);
     void localize(img::Mat<img::uchar> &_current_frame);
@@ -53,7 +52,7 @@ inline void MeanShiftTracker::inital(const img::Rect _roi, img::Mat<img::uchar> 
 {
     target.roi=_roi;
     target.computeHistogram(_initial_frame);
-    //img::drawBorder(target.roi, _initial_frame);
+    img::drawBorder(target.roi, _initial_frame);
 }
 
 inline double epanechnikov_kernel(double norm)

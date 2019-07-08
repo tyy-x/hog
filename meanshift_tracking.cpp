@@ -45,13 +45,6 @@ void ROIData::computeHistogram(const Mat<uchar> &img)
         indexX=0;
         indexY++;
     }
-    //debug
-    /*
-    cout<<"#kernel density estimation"<<endl;
-    for(int i=0; i<256; i++){
-        cout<<i<<"    "<<pdf[i]<<endl;
-    }
-    */
 }
 
 void MeanShiftTracker::processing(const Mat<uchar> &_current_frame)
@@ -68,7 +61,6 @@ void MeanShiftTracker::localize(Mat<uchar> &_current_frame)
     int iteration=1;
     
     while(delta >= epislon && iteration <= maxIteration){
-        //delta=sqrt((new_center.x-candidate.roi.center.x)*(new_center.x-candidate.roi.center.x)+(new_center.y-candidate.roi.center.y)*(new_center.y-candidate.roi.center.y));
         computeWeights(_current_frame);
         new_center=computeNewLocation();
         
@@ -80,8 +72,6 @@ void MeanShiftTracker::localize(Mat<uchar> &_current_frame)
         new_point2.y=(int)(new_center.y+candidate.roi.height/2.f);
         
         Rect new_roi={new_point1, new_point2};
-        //ROIData tmp(new_roi);
-        //tmp.computeHistogram(_current_frame);
         
         delta=sqrt((new_roi.center.x-candidate.roi.center.x)*(new_roi.center.x-candidate.roi.center.x)+(new_roi.center.y-candidate.roi.center.y)*(new_roi.center.y-candidate.roi.center.y));
         candidate.roi=new_roi;
@@ -93,7 +83,7 @@ void MeanShiftTracker::localize(Mat<uchar> &_current_frame)
         }
     }
     cout<<"("<<candidate.roi.center.x<<", "<<candidate.roi.center.y<<")"<<"repeat times: "<<iteration-1<<endl;
-    //drawBorder(candidate.roi, _current_frame);
+    drawBorder(candidate.roi, _current_frame);
 }
 
 void MeanShiftTracker::computeWeights(const Mat<uchar> &_current_frame)
