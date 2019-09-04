@@ -16,6 +16,7 @@ namespace img {
     void readUYVY422_(const std::string &filename, Mat<uchar> &img, int flags);
     void writeUYVY422(const std::string &filename, const Mat<uchar> &img);
     void writeYUV444(const std::string &filename, const Mat<uchar> &img);
+    Mat<uchar> cropUYVY422(const Point p1, const Point p2, const Mat<uchar> &img);
     //for a yvy422 image, set the value of U and V channel to 128 to generate a grayscale image
     inline void setGrayscale(Mat<uchar> &img)
     {

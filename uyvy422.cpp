@@ -145,4 +145,44 @@ namespace img {
         dst.create(nrows, ncols, IMG_UC2);
         convertToUYVY422(dst, dst444);
     }
+    
+    Mat<uchar> cropUYVY422(const Point p1, const Point p2, const Mat<uchar> &img)
+    {
+        //create a new image matrix and convert uyvy422 to yuv444
+        Mat<uchar> tempYUV444;
+        convertToYUV444(tempYUV444, img);
+        
+        //create 3 one channel image matrix
+        Mat<uchar> channelY(img.rows, img.cols);
+        Mat<uchar> channelU(channelY);
+        Mat<uchar> channelV(channelY);
+        split(tempYUV444, channelY, channelU, channelV);
+        
+        //compute croped image width and height
+        int nrows=p2.y-p1.y+1;
+        int ncols=p2.x-p1.x+1;
+        
+        //create 3 new one channel image matrix to store croped image
+        Mat<uchar> nchannelY(nrows, ncols);
+        Mat<uchar> nchannelU(nchannelY);
+        Mat<uchar> nchannelV(nchannelY);
+        
+        for(int i=0; i<nrows; i++){
+            for(int j=0; j<ncols; j++){
+                *nchannelY.at(i, j)=*channelY.at((int)p1.y+i, (int)p1.x+j);
+                *nchannelU.at(i, j)=*channelU.at((int)p1.y+i, (int)p1.x+j);
+                *nchannelV.at(i, j)=*channelV.at((int)p1.y+i, (int)p1.x+j);
+            }
+        }
+        
+        //create a new 3 channel image to store croped image
+        Mat<uchar> ntempYUV444(nrows, ncols, IMG_UC3);
+        merge(ntempYUV444, nchannelY, nchannelU, nchannelV);
+        
+        //create a new 3 channel image and convert yuv444 to uyvy422
+        Mat<uchar> cropedImg(ntempYUV444.rows, ntempYUV444.cols, IMG_UC3);
+        convertToUYVY422(cropedImg, ntempYUV444);
+        
+        return cropedImg;
+    }
 }

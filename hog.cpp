@@ -50,11 +50,7 @@ void HOGFeature::computeGradient(const Mat<uchar> &img)
                 yDelta+=k*(*padImg.at(i+k, j));
             }
             *magnitude.at(i-1, j-1)=sqrt(xDelta*xDelta+yDelta*yDelta);
-            if(xDelta!=0.0){
-                theta=atan2(yDelta, xDelta)*180.0/PI;
-            }else if(yDelta!=0){
-                theta=90.0;
-            }else theta=0.0;
+            theta=atan2(yDelta, xDelta+0.00001)*180.0/PI;
             if(theta>=0){
                 *angle.at(i-1, j-1)=theta;
             }else *angle.at(i-1, j-1)=theta+180.0;
@@ -123,16 +119,14 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
-            factorX=(j-xWin+4.5)/cellSize;
-            factorY=(i-yWin+4.5)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(0, 0)[index]+=weight*factorX*factorY*(1-factorBin);
-                cellHist.at(0, 0)[index+1]+=weight*factorX*factorY*factorBin;
+                cellHist.at(0, 0)[index]+=weight*(1-factorBin);
+                cellHist.at(0, 0)[index+1]+=weight*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(0, 0)[8]+=weight*factorX*factorY*(1-factorBin);
-                cellHist.at(0, 0)[0]+=weight*factorX*factorY*factorBin;
+                cellHist.at(0, 0)[8]+=weight*(1-factorBin);
+                cellHist.at(0, 0)[0]+=weight*factorBin;
             }
         }
     }
@@ -143,16 +137,14 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
-            factorX=(j-xWin-3.5-(cellHistCols-1)*8)/cellSize;
-            factorY=(i-yWin+4.5)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(0, cellHistCols-1)[index]+=weight*(1-factorX)*factorY*(1-factorBin);
-                cellHist.at(0, cellHistCols-1)[index+1]+=weight*(1-factorX)*factorY*factorBin;
+                cellHist.at(0, cellHistCols-1)[index]+=weight*(1-factorBin);
+                cellHist.at(0, cellHistCols-1)[index+1]+=weight*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(0, cellHistCols-1)[8]+=weight*(1-factorX)*factorY*(1-factorBin);
-                cellHist.at(0, cellHistCols-1)[0]+=weight*(1-factorX)*factorY*factorBin;
+                cellHist.at(0, cellHistCols-1)[8]+=weight*(1-factorBin);
+                cellHist.at(0, cellHistCols-1)[0]+=weight*factorBin;
             }
         }
     }
@@ -163,16 +155,14 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
-            factorX=(j-xWin+4.5)/cellSize;
-            factorY=(i-yWin-3.5-(cellHistRows-1)*8)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(cellHistRows-1, 0)[index]+=weight*factorX*(1-factorY)*(1-factorBin);
-                cellHist.at(cellHistRows-1, 0)[index+1]+=weight*factorX*(1-factorY)*factorBin;
+                cellHist.at(cellHistRows-1, 0)[index]+=weight*(1-factorBin);
+                cellHist.at(cellHistRows-1, 0)[index+1]+=weight*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(cellHistRows-1, 0)[8]+=weight*factorX*(1-factorY)*(1-factorBin);
-                cellHist.at(cellHistRows-1, 0)[0]+=weight*factorX*(1-factorY)*factorBin;
+                cellHist.at(cellHistRows-1, 0)[8]+=weight*(1-factorBin);
+                cellHist.at(cellHistRows-1, 0)[0]+=weight*factorBin;
             }
         }
     }
@@ -183,16 +173,14 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
             _angle=*angle.at(i, j);
             index=_angle/20;
             weight=*magnitude.at(i, j);
-            factorX=(j-xWin-3.5-(cellHistCols-1)*8)/cellSize;
-            factorY=(i-yWin-3.5-(cellHistRows-1)*8)/cellSize;
             if(index<8){
                 factorBin=(_angle-index*20)/20;
-                cellHist.at(cellHistRows-1, cellHistCols-1)[index]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
-                cellHist.at(cellHistRows-1, cellHistCols-1)[index+1]+=weight*(1-factorX)*(1-factorY)*factorBin;
+                cellHist.at(cellHistRows-1, cellHistCols-1)[index]+=weight*(1-factorBin);
+                cellHist.at(cellHistRows-1, cellHistCols-1)[index+1]+=weight*factorBin;
             }else{
                 factorBin=(_angle-160)/20;
-                cellHist.at(cellHistRows-1, cellHistCols-1)[8]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
-                cellHist.at(cellHistRows-1, cellHistCols-1)[0]+=weight*(1-factorX)*(1-factorY)*factorBin;
+                cellHist.at(cellHistRows-1, cellHistCols-1)[8]+=weight*(1-factorBin);
+                cellHist.at(cellHistRows-1, cellHistCols-1)[0]+=weight*factorBin;
             }
         }
     }
@@ -206,19 +194,18 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
                 index=_angle/20;
                 weight=*magnitude.at(i, j+x);
                 factorX=(j+x-leftBorder)/cellSize;
-                factorY=(i-yWin+4.5)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(0, cellX)[index]+=weight*(1-factorX)*factorY*(1-factorBin);
-                    cellHist.at(0, cellX)[index+1]+=weight*(1-factorX)*factorY*factorBin;
-                    cellHist.at(0, cellX+1)[index]+=weight*factorX*factorY*(1-factorBin);
-                    cellHist.at(0, cellX+1)[index+1]+=weight*factorX*factorY*factorBin;
+                    cellHist.at(0, cellX)[index]+=weight*(1-factorX)*(1-factorBin);
+                    cellHist.at(0, cellX)[index+1]+=weight*(1-factorX)*factorBin;
+                    cellHist.at(0, cellX+1)[index]+=weight*factorX*(1-factorBin);
+                    cellHist.at(0, cellX+1)[index+1]+=weight*factorX*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
-                    cellHist.at(0, cellX)[8]+=weight*(1-factorX)*factorY*(1-factorBin);
-                    cellHist.at(0, cellX)[0]+=weight*(1-factorX)*factorY*factorBin;
-                    cellHist.at(0, cellX+1)[8]+=weight*factorX*factorY*(1-factorBin);
-                    cellHist.at(0, cellX+1)[0]+=weight*factorX*factorY*factorBin;
+                    cellHist.at(0, cellX)[8]+=weight*(1-factorX)*(1-factorBin);
+                    cellHist.at(0, cellX)[0]+=weight*(1-factorX)*factorBin;
+                    cellHist.at(0, cellX+1)[8]+=weight*factorX*(1-factorBin);
+                    cellHist.at(0, cellX+1)[0]+=weight*factorX*factorBin;
                 }
             }
             cellX++;
@@ -235,19 +222,18 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
                 index=_angle/20;
                 weight=*magnitude.at(i, j+x);
                 factorX=(j+x-leftBorder)/cellSize;
-                factorY=(i-yWin-3.5-(cellHistRows-1)*8)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(cellHistRows-1, cellX)[index]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX)[index+1]+=weight*(1-factorX)*(1-factorY)*factorBin;
-                    cellHist.at(cellHistRows-1, cellX+1)[index]+=weight*factorX*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX+1)[index+1]+=weight*factorX*(1-factorY)*factorBin;
+                    cellHist.at(cellHistRows-1, cellX)[index]+=weight*(1-factorX)*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX)[index+1]+=weight*(1-factorX)*factorBin;
+                    cellHist.at(cellHistRows-1, cellX+1)[index]+=weight*factorX*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX+1)[index+1]+=weight*factorX*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
-                    cellHist.at(cellHistRows-1, cellX)[8]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX)[0]+=weight*(1-factorX)*(1-factorY)*factorBin;
-                    cellHist.at(cellHistRows-1, cellX+1)[8]+=weight*factorX*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellHistRows-1, cellX+1)[0]+=weight*factorX*(1-factorY)*factorBin;
+                    cellHist.at(cellHistRows-1, cellX)[8]+=weight*(1-factorX)*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX)[0]+=weight*(1-factorX)*factorBin;
+                    cellHist.at(cellHistRows-1, cellX+1)[8]+=weight*factorX*(1-factorBin);
+                    cellHist.at(cellHistRows-1, cellX+1)[0]+=weight*factorX*factorBin;
                 }
             }
             cellX++;
@@ -264,20 +250,19 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
                 _angle=*angle.at(i+y, j);
                 index=_angle/20;
                 weight=*magnitude.at(i+y, j);
-                factorX=(j-xWin+4.5)/cellSize;
                 factorY=(i+y-topBorder)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(cellY, 0)[index]+=weight*factorX*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellY, 0)[index+1]+=weight*factorX*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, 0)[index]+=weight*factorX*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, 0)[index+1]+=weight*factorX*factorY*factorBin;
+                    cellHist.at(cellY, 0)[index]+=weight*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellY, 0)[index+1]+=weight*(1-factorY)*factorBin;
+                    cellHist.at(cellY+1, 0)[index]+=weight*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, 0)[index+1]+=weight*factorY*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
-                    cellHist.at(cellY, 0)[8]+=weight*factorX*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellY, 0)[0]+=weight*factorX*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, 0)[8]+=weight*factorX*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, 0)[0]+=weight*factorX*factorY*factorBin;
+                    cellHist.at(cellY, 0)[8]+=weight*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellY, 0)[0]+=weight*(1-factorY)*factorBin;
+                    cellHist.at(cellY+1, 0)[8]+=weight*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, 0)[0]+=weight*factorY*factorBin;
                 }
             }
         }
@@ -293,20 +278,19 @@ void HOGFeature::computeCellHistogram(int yWin, int xWin)
                 _angle=*angle.at(i+y, j);
                 index=_angle/20;
                 weight=*magnitude.at(i+y, j);
-                factorX=(j-xWin-3.5-(cellHistCols-1)*8)/cellSize;
                 factorY=(i+y-topBorder)/cellSize;
                 if(index<8){
                     factorBin=(_angle-index*20)/20;
-                    cellHist.at(cellY, cellHistCols-1)[index]+=weight*(1-factorX)*(1-factorY)*(1-factorBin);
-                    cellHist.at(cellY, cellHistCols-1)[index+1]+=weight*(1-factorX)*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, cellHistCols-1)[index]+=weight*(1-factorX)*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, cellHistCols-1)[index+1]+=weight*(1-factorX)*factorY*factorBin;
+                    cellHist.at(cellY, cellHistCols-1)[index]+=weight*(1-factorY)*(1-factorBin);
+                    cellHist.at(cellY, cellHistCols-1)[index+1]+=weight*(1-factorY)*factorBin;
+                    cellHist.at(cellY+1, cellHistCols-1)[index]+=weight*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, cellHistCols-1)[index+1]+=weight*factorY*factorBin;
                 }else{
                     factorBin=(_angle-160)/20;
                     cellHist.at(cellY, cellHistCols-1)[8]+=weight*(1-factorY)*(1-factorBin);
                     cellHist.at(cellY, cellHistCols-1)[0]+=weight*(1-factorY)*factorBin;
-                    cellHist.at(cellY+1, cellHistCols-1)[8]+=weight*(1-factorX)*factorY*(1-factorBin);
-                    cellHist.at(cellY+1, cellHistCols-1)[0]+=weight*(1-factorX)*factorY*factorBin;
+                    cellHist.at(cellY+1, cellHistCols-1)[8]+=weight*factorY*(1-factorBin);
+                    cellHist.at(cellY+1, cellHistCols-1)[0]+=weight*factorY*factorBin;
                 }
             }
         }
@@ -336,11 +320,11 @@ void HOGFeature::computeL2norm()
 {
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
-            int sum=0;
+            double sum=0;
             for(int k=0; k<blockHistSize; k++){
                 sum+=blockHist.at(i, j)[k]*blockHist.at(i, j)[k];
             }
-            sum=sqrt(sum+0.001);
+            sum=sqrt(sum+0.00001);
             for(int k=0; k<blockHistSize; k++){
                 blockHist.at(i, j)[k]=blockHist.at(i, j)[k]/sum;
             }
