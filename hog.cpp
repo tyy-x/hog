@@ -12,6 +12,7 @@
 #include <cmath>
 #include "imgproc.hpp"
 #include "hog.hpp"
+#include "uyvy422.hpp"
 using namespace hog;
 using namespace img;
 using namespace std;
@@ -56,6 +57,38 @@ void HOGFeature::computeGradient(const Mat<uchar> &img)
             }else *angle.at(i-1, j-1)=theta+180.0;
             xDelta=yDelta=0.0;
         }
+    }
+}
+
+void HOGFeature::computeCell(int yWin, int xWin)
+{
+    int index;
+    double _angle, weight;
+    int cellY=0, cellX=0;
+    double factorBin;
+    
+    for(int i=yWin; i<(cellHistRows-1)*cellSize+yWin; i+=cellSize){
+        for(int j=xWin; j<(cellHistCols-1)*cellSize+xWin; j+=cellSize){
+            for(int y=0; y<cellSize; y++){
+                for(int x=0; x<cellSize; x++){
+                    _angle=*angle.at(i+y, j+x);
+                    index=_angle/20;
+                    weight=*magnitude.at(i+y, j+x);
+                    if(index<8){
+                        factorBin=(_angle-index*20)/20;
+                        cellHist.at(cellY, cellX)[index]+=weight*(1-factorBin);
+                        cellHist.at(cellY, cellX)[index+1]+=weight*factorBin;
+                    }else{
+                        factorBin=(_angle-160)/20;
+                        cellHist.at(cellY, cellX)[8]+=weight*(1-factorBin);
+                        cellHist.at(cellY, cellX)[0]+=weight+factorBin;
+                    }
+                }
+            }
+            cellX++;
+        }
+        cellX=0;
+        cellY++;
     }
 }
 
@@ -332,12 +365,37 @@ void HOGFeature::computeL2norm()
     }
 }
 
+void HOGFeature::blockToCellHistogram()
+{
+    int index=0;
+    for(int i=0; i<blockHistRows; i++){
+        for(int j=0; j<blockHistCols; j++){
+            for(int k=0; k<blockSize/cellSize; k++){
+                for(int l=0; l<blockSize/cellSize; l++){
+                    for(int m=0; m<bins; m++){
+                        cellHist.at(i+k, j+l)[m]=blockHist.at(i, j)[index++];
+                    }
+                }
+            }
+            index=0;
+        }
+    }
+}
+
 void HOGFeature::computeHOGFeature(int yWin, int xWin)
 {
     computeCellHistogram(yWin, xWin);
     computeBlockHistogram();
     computeL2norm();
     
+    //threshold=0.2
+    for(int i=0; i<blockHistRows; i++){
+        for(int j=0; j<blockHistCols; j++){
+            for(int k=0; k<blockHistSize; k++){
+                if(blockHist.at(i, j)[k]<0.2) blockHist.at(i, j)[k]=0;
+            }
+        }
+    }
     int index=0;
     for(int i=0; i<blockHistRows; i++){
         for(int j=0; j<blockHistCols; j++){
@@ -362,5 +420,74 @@ void HOGFeature::save(const string &filename)
     for(auto item:hogVector){
         output<<left;
         output<<setw(6)<<++i<<item<<endl;
+    }
+}
+
+void HOGFeature::visualize(const string &filename)
+{
+    int _rows=cellHistRows*10;
+    int _cols=cellHistCols*11;
+    Mat<uchar> img(_rows, _cols, IMG_UC2);
+    Mat<uchar> luma(_rows, _cols);
+    
+    setGrayscale(img);
+    for(int i=0; i<luma.rows*luma.cols; i++) luma.data[i]=100;
+    
+    blockToCellHistogram();
+    for(int i=0; i<cellHistRows; i++){
+        for(int j=0; j<cellHistCols; j++){
+            for(int k=0; k<9; k++){
+                int height=cellHist.at(i, j)[k]*8;
+                for(int l=0; l<height; l++){
+                    *luma.at((i+1)*10-1-l, j*11+1+k)=0;
+                }
+            }
+        }
+    }
+    //draw grid
+    for(int i=0; i<cellHistCols-1; i++){
+        for(int j=0; j<luma.rows; j++){
+            *luma.at(j, (i+1)*11-1)=*luma.at(j, (i+1)*11)=255;
+        }
+    }
+    for(int i=0; i<cellHistRows-1; i++){
+        for(int j=0; j<luma.cols; j++){
+            *luma.at((i+1)*10, j)=255;
+        }
+    }
+    mergeLuma(luma, img);
+    writeUYVY422(filename, img);
+}
+
+void HOGFeature::outputCellHistogram(const string &filename, int cellY, int cellX)
+{
+    blockToCellHistogram();
+    ofstream output(filename, ofstream::binary);
+    
+    if(!output){
+        cerr<<"#Error: file not opened!"<<endl;
+        exit(1);
+    }
+    
+    output<<"#Cell Histogram("<<cellY<<", "<<cellX<<")"<<endl;
+    for(int i=0; i<bins; i++){
+        output<<left;
+        output<<setw(6)<<i+1<<cellHist.at(cellY, cellX)[i]<<endl;
+    }
+}
+
+void HOGFeature::outputBlockHistogram(const std::string &filename, int blockY, int blockX)
+{
+    ofstream output(filename, ofstream::binary);
+    
+    if(!output){
+        cerr<<"#Error: file not opened!"<<endl;
+        exit(1);
+    }
+    
+    output<<"#Block Histogram("<<blockY<<", "<<blockX<<")"<<endl;
+    for(int i=0; i<36; i++){
+        output<<left;
+        output<<setw(6)<<i+1<<blockHist.at(blockY, blockX)[i]<<endl;
     }
 }

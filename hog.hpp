@@ -33,7 +33,9 @@ namespace hog {
         void computeGradient(const img::Mat<img::uchar> &img);
         void assignGradientMagnitude(img::Mat<img::uchar> &img);
         void computeCellHistogram(int yWin, int xWin); //compute cell histogram use trilinear interpolation
+        void computeCell(int yWin, int xWin); //compute cell histogram use bilinear interpolation
         void computeBlockHistogram();
+        void blockToCellHistogram(); //use computed block histogram to generate cell histogram
         void computeL2norm(); //normalize block histogram usr L2-norm method
     
     public:
@@ -50,6 +52,9 @@ namespace hog {
         void computeHOGFeature(int yWin, int xWin); //compute hog feature in the scanning window
         void save(const std::string &filename); //save hog descriptor data to file
         int get_hogVector_size() { return hogVectorSize;}
+        void visualize(const std::string &filename);
+        void outputCellHistogram(const std::string &filename, int cellY, int cellX); //output cell histogram to file
+        void outputBlockHistogram(const std::string &filename, int blockY, int blockX); //output block histogram to file
     };
     
     inline void HOGFeature::processing(img::Mat<img::uchar> &img, int flag)

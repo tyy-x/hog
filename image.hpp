@@ -15,7 +15,6 @@ namespace img {
     typedef unsigned char uchar;
     enum {READ_GRAYSCALE, READ_COLOR};
     enum {IMG_UC1=1, IMG_UC2=2, IMG_UC3=3};
-    enum {Box, Prewitt, Sobel, Gaussian};
     /* image class for 8-bit images*/
     template <typename T> class Mat{
     private:

@@ -180,7 +180,7 @@ namespace img {
         merge(ntempYUV444, nchannelY, nchannelU, nchannelV);
         
         //create a new 3 channel image and convert yuv444 to uyvy422
-        Mat<uchar> cropedImg(ntempYUV444.rows, ntempYUV444.cols, IMG_UC3);
+        Mat<uchar> cropedImg;
         convertToUYVY422(cropedImg, ntempYUV444);
         
         return cropedImg;

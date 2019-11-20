@@ -129,28 +129,76 @@ namespace img {
         }
     }
     
-    void boxFiltering(const Mat<uchar> &padImg, Mat<uchar> &img, int filterSize)
+    Mat<double> get2DGaussianKernel(double sigma, int size)
     {
-        Mat<uchar> filter(filterSize, filterSize);
-        int factor=filterSize*filterSize;
-        int borderWidth=filterSize/2;
+        Mat<double> kernel1D=get1DGaussianKernel(sigma, size);
+        Mat<double> kernel2D(size, size);
         
-        for(int i=0; i<filterSize*filterSize; i++) filter.data[i]=1;
+        for(int i=0; i<kernel2D.rows; i++){
+            for(int j=0; j<kernel2D.cols; j++){
+                *kernel2D.at(i, j)=kernel1D.data[i]*kernel1D.data[j];
+            }
+        }
+        
+        return kernel2D;
+    }
+    
+    Mat<double> get1DGaussianKernel(double sigma, int size)
+    {
+        int radius=size/2;
+        Mat<double> kernel(1, size);
+        
+        double sum=0;
+        double n=1/(sqrt(2*3.141592654)*sigma);
+        for(int i=0; i<size; i++){
+            kernel.data[i]=n*exp(-0.5*(i-radius)*(i-radius)/(sigma*sigma));
+            sum+=kernel.data[i];
+        }
+        for(int i=0; i<size; i++) kernel.data[i]/=sum;
+        
+        return kernel;
+    }
+    
+    void median(Mat<uchar> &img, int size)
+    {
+        int borderWidth=size/2;
+        Mat<uchar> padImg(img.rows+borderWidth*2, img.cols+borderWidth*2);
+        makeBorderCopy(padImg, img, borderWidth);
+        
         for(int i=borderWidth; i<padImg.rows-borderWidth; i++){
             for(int j=borderWidth; j<padImg.cols-borderWidth; j++){
-                int sum=0;
+                uchar data[size*size];
+                int index=0;
                 for(int k=-borderWidth; k<=borderWidth; k++){
                     for(int l=-borderWidth; l<=borderWidth; l++){
-                        sum+=*padImg.at(i+k, j+l);
+                        data[index++]=*padImg.at(i+k, j+l);
                     }
                 }
-                *img.at(i-borderWidth, j-borderWidth)=sum/factor;
+                bool sorted=false;
+                int length=size*size-1;
+                while(!sorted){
+                    sorted=true;
+                    for(int n=0; n<length; n++){
+                        int temp;
+                        if(data[n]>data[n+1]){
+                            temp=data[n+1];
+                            data[n+1]=data[n];
+                            data[n]=temp;
+                            sorted=false;
+                        }
+                    }
+                    length--;
+                }
+                *img.at(i-borderWidth, j-borderWidth)=data[size*size/2];
             }
         }
     }
     
-    void prewitt(const Mat<uchar> &padImg, Mat<uchar> &img)
+    void prewitt(Mat<uchar> &img)
     {
+        Mat<uchar> padImg(img.rows+2, img.cols+2);
+        makeBorderCopy(padImg, img, 1);
+
         for(int i=1; i<padImg.rows-1; i++){
             for(int j=1; j<padImg.cols-1; j++){
                 int sumx=0, sumy=0;
@@ -165,8 +213,11 @@ namespace img {
         }
     }
     
-    void sobel(const Mat<uchar> &padImg, Mat<uchar> &img)
+    void sobel(Mat<uchar> &img)
     {
+        Mat<uchar> padImg(img.rows+2, img.cols+2);
+        makeBorderCopy(padImg, img, 1);
+        
         for(int i=1; i<padImg.rows-1; i++){
             for(int j=1; j<padImg.cols-1; j++){
                 int sumx=0, sumy=0;
@@ -181,30 +232,53 @@ namespace img {
         }
     }
     
-    void gaussian(const Mat<uchar> &padImg, Mat<uchar> &img, int filterSize)
+    void gaussianFiltering2D(Mat<uchar> &img, double sigma, int size)
     {
-        int borderWidth=filterSize/2;
-        vector<int> filter3{1, 2, 1, 2, 4, 2, 1, 2, 1};
-        vector<int> filter5{1, 4, 7, 4, 1, 4, 16, 26, 16, 4, 7, 26, 41, 26, 7, 4, 16, 26, 16, 4, 1, 4, 7, 4, 1};
-        int factor3=16;
-        int factor5=273;
+        int border=size/2;
+        Mat<double> kernel=get2DGaussianKernel(sigma, size);
+        Mat<uchar> padImg(img.rows+border*2, img.cols+border*2);
         
-        for(int i=borderWidth; i<padImg.rows-borderWidth; i++){
-            for(int j=borderWidth; j<padImg.cols-borderWidth; j++){
-                int sum=0;
-                int count=0;
-                for(int k=-borderWidth; k<=borderWidth; k++){
-                    for(int l=-borderWidth; l<=borderWidth; l++){
-                        switch(filterSize){
-                            case 3: sum+=filter3[count++]*(*padImg.at(i+k, j+l)); break;
-                            case 5: sum+=filter5[count++]*(*padImg.at(i+k, j+l)); break;
-                        }
+        makeBorderCopy(padImg, img, border);
+        for(int i=border; i<padImg.rows-border; i++){
+            for(int j=border; j<padImg.cols-border; j++){
+                double sum=0;
+                int index=0;
+                for(int k=-border; k<=border; k++){
+                    for(int l=-border; l<=border; l++){
+                        sum+=*padImg.at(i+k, j+l)*kernel.data[index++];
                     }
                 }
-                switch(filterSize){
-                    case 3: *img.at(i-borderWidth, j-borderWidth)=sum/factor3; break;
-                    case 5: *img.at(i-borderWidth, j-borderWidth)=sum/factor5; break;
+                *img.at(i-border, j-border)=sum;
+            }
+        }
+    }
+    
+    void gaussianFiltering1D(Mat<uchar> &img, double sigma, int size)
+    {
+        int border=size/2;
+        Mat<double> kernel=get1DGaussianKernel(sigma, size);
+        Mat<uchar> padImg(img.rows+border*2, img.cols+border*2);
+        
+        makeBorderCopy(padImg, img, border);
+        for(int i=border; i<padImg.rows-border; i++){
+            for(int j=border; j<padImg.cols-border; j++){
+                double sum=0;
+                int index=0;
+                for(int k=-border; k<=border; k++){
+                    sum+=*padImg.at(i, j+k)*kernel.data[index++];
                 }
+                *img.at(i-border, j-border)=sum;
+            }
+        }
+        makeBorderCopy(padImg, img, border);
+        for(int i=border; i<padImg.rows-border; i++){
+            for(int j=border; j<padImg.cols-border; j++){
+                double sum=0;
+                int index=0;
+                for(int k=-border; k<=border; k++){
+                    sum+=*padImg.at(i+k, j)*kernel.data[index++];
+                }
+                *img.at(i-border, j-border)=sum;
             }
         }
     }

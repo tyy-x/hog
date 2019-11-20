@@ -44,27 +44,17 @@ namespace img {
     */
     void scale(Mat<uchar> &dst, const Mat<uchar> &src, float factor);
     
-    //filter
-    void boxFiltering(const Mat<uchar> &padImg, Mat<uchar> &img, int filterSize);
-    void prewitt(const Mat<uchar> &padImg, Mat<uchar> &img);
-    void sobel(const Mat<uchar> &padImg, Mat<uchar> &img);
-    void gaussian(const Mat<uchar> &padImg, Mat<uchar> &img, int filterSize);
     void gammaCorrection(Mat<uchar> &img, float gamma);
     
-    //filtering
-    inline void filtering(Mat<uchar> &img, int type, int filterSize=3)
-    {
-        int borderWidth=filterSize/2;
-        Mat<uchar> padImg(img.rows+borderWidth*2, img.cols+borderWidth*2);
-        
-        makeBorderCopy(padImg, img, borderWidth);
-        switch(type){
-            case Box: boxFiltering(padImg, img, filterSize); break;
-            case Prewitt: prewitt(padImg, img); break;
-            case Sobel: sobel(padImg, img); break;
-            case Gaussian: gaussian(padImg, img, filterSize); break;
-        }
-    }
+    //median filter of odd size
+    void median(Mat<uchar> &img, int size);
+    void sobel(Mat<uchar> &img);
+    void prewitt(Mat<uchar> &img);
+    
+    Mat<double> get2DGaussianKernel(double sigma, int size);
+    Mat<double> get1DGaussianKernel(double sigma, int size);
+    void gaussianFiltering2D(Mat<uchar> &img, double sigma, int size);
+    void gaussianFiltering1D(Mat<uchar> &img, double sigma, int size);
     
     //draw a box border on an gray image
     void drawBorder(const Rect &roi, Mat<uchar> &img);
