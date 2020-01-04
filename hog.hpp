@@ -46,7 +46,7 @@ namespace hog {
         std::vector<double> hogVector; //final hog descriptor in one window
         
         HOGFeature() { initial();}
-        HOGFeature(int _winHeight, int _winWidth):winHeight(_winHeight), winWidth(_winWidth) { initial();}
+        HOGFeature(int _winWidth, int _winHeight):winWidth(_winWidth), winHeight(_winHeight) { initial();}
         ~HOGFeature() { /*std::cout<<"debug"<<std::endl;*/}
         void processing(img::Mat<img::uchar> &img, int type=0); //preprocessing image to compute gradient
         void computeHOGFeature(int yWin, int xWin); //compute hog feature in the scanning window
